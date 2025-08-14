@@ -73,3 +73,5 @@ Detailed description
 Steps to reproduce
 Expected vs. actual behavior
 Screenshots if applicable
+-----------------------------------------------------------------------------------
+Basketball Tracker - Track your games, improve your performance! 🏆
