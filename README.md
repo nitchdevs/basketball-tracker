@@ -68,10 +68,10 @@ Contributions are welcome! Please read the contributing guidelines first.
 
 🐞 Bug Reports
 Found a bug? Please open an issue with:
+  Detailed description
+  Steps to reproduce
+  Expected vs. actual behavior
+  Screenshots if applicable
 
-Detailed description
-Steps to reproduce
-Expected vs. actual behavior
-Screenshots if applicable
 -----------------------------------------------------------------------------------
 Basketball Tracker - Track your games, improve your performance! 🏆
