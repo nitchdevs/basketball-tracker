@@ -1,1367 +1,1388 @@
-import React, { useState, useEffect } from "react";
-
-const App = () => {
-  const [activeScreen, setActiveScreen] = useState('home'); // home, manageTeam, selectPlayers, game, stats, setup, gameDetails, playerTimeline
-  const [teams, setTeams] = useState(() => {
-    const saved = localStorage.getItem('basketball-teams');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: 'Home Team', players: [] }
-    ];
-  });
-  const [currentTeamId, setCurrentTeamId] = useState(1);
-  const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerNumber, setNewPlayerNumber] = useState('');
-  const [newTeamName, setNewTeamName] = useState('');
-  
-  // Game tracking state
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameTime, setGameTime] = useState(0); // in seconds
-  const [currentPeriod, setCurrentPeriod] = useState(1);
-  const [gameTimer, setGameTimer] = useState(null);
-  const [gameData, setGameData] = useState(null);
-  const [showGameSummary, setShowGameSummary] = useState(false);
-  const [showSubstitution, setShowSubstitution] = useState(false);
-  const [selectedSubstitute, setSelectedSubstitute] = useState(null);
-  const [playerToSubstitute, setPlayerToSubstitute] = useState(null);
-  const [showEndGameConfirm, setShowEndGameConfirm] = useState(false);
-  const [showPeriodStats, setShowPeriodStats] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  
-  // Stats state
-  const [savedGames, setSavedGames] = useState(() => {
-    const saved = localStorage.getItem('basketball-games');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [selectedGame, setSelectedGame] = useState(null);
-
-  // Setup configuration
-  const [setupConfig, setSetupConfig] = useState(() => {
-    const saved = localStorage.getItem('basketball-setup');
-    const defaultConfig = {
-      periods: 4,
-      periodDuration: 600 // 10 minutes in seconds
-    };
-    return saved ? JSON.parse(saved) : defaultConfig;
-  });
-
-  // Save teams to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('basketball-teams', JSON.stringify(teams));
-  }, [teams]);
-
-  // Save games to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('basketball-games', JSON.stringify(savedGames));
-  }, [savedGames]);
-
-  // Save setup config to localStorage
-  useEffect(() => {
-    localStorage.setItem('basketball-setup', JSON.stringify(setupConfig));
-  }, [setupConfig]);
-
-  const currentTeam = teams.find(t => t.id === currentTeamId) || teams[0];
-  const onCourtPlayers = gameData?.players.filter(p => p.onCourt) || [];
-  const benchPlayers = gameData?.players.filter(p => !p.onCourt) || [];
-
-  const addPlayer = () => {
-    if (newPlayerName.trim() && newPlayerNumber.trim()) {
-      // Check if number is already in use
-      const numberExists = currentTeam.players.some(player => 
-        player.number === newPlayerNumber.trim()
-      );
-      
-      if (numberExists) {
-        alert(`Player number ${newPlayerNumber.trim()} is already in use!`);
-        return;
-      }
-      
-      const updatedTeams = teams.map(team => {
-        if (team.id === currentTeamId) {
-          return {
-            ...team,
-            players: [
-              ...team.players,
-              {
-                id: Date.now(),
-                name: newPlayerName.trim(),
-                number: newPlayerNumber.trim(),
-                onCourt: false,
-                playing: false,
-                score: 0,
-                fouls: 0,
-                timeOnCourt: 0,
-                timeIntervals: []
-              }
-            ]
-          };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Tracker</title>
+    <meta name="theme-color" content="#1976d2">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        return team;
-      });
-      setTeams(updatedTeams);
-      setNewPlayerName('');
-      setNewPlayerNumber('');
-    }
-  };
-
-  const removePlayer = (playerId) => {
-    const updatedTeams = teams.map(team => {
-      if (team.id === currentTeamId) {
-        return {
-          ...team,
-          players: team.players.filter(p => p.id !== playerId)
-        };
-      }
-      return team;
-    });
-    setTeams(updatedTeams);
-  };
-
-  const addTeam = () => {
-    if (newTeamName.trim()) {
-      const newTeam = {
-        id: Date.now(),
-        name: newTeamName.trim(),
-        players: []
-      };
-      setTeams([...teams, newTeam]);
-      setCurrentTeamId(newTeam.id);
-      setNewTeamName('');
-    }
-  };
-
-  const selectStartingPlayers = () => {
-    if (currentTeam.players.length < 5) {
-      alert('You need at least 5 players to start a game!');
-      return;
-    }
-    
-    // Show all players so user can select the 5 starters
-    const playersWithCourtStatus = currentTeam.players.map(p => ({
-      ...p,
-      onCourt: false,
-      playing: false,
-      timeIntervals: [],
-      lastTimeUpdate: null
-    }));
-    
-    setGameData({
-      teamId: currentTeamId,
-      teamName: currentTeam.name,
-      startTime: Date.now(),
-      endTime: null,
-      period: 1,
-      periods: setupConfig.periods,
-      periodDuration: setupConfig.periodDuration,
-      players: playersWithCourtStatus
-    });
-    setActiveScreen('selectPlayers');
-  };
-
-  const confirmStartingPlayers = () => {
-    const onCourtCount = gameData.players.filter(p => p.onCourt).length;
-    
-    if (onCourtCount !== 5) {
-      alert('You must select exactly 5 starting players!');
-      return;
-    }
-    
-    // Reset game state
-    setGameStarted(false);
-    setGameTime(0);
-    setCurrentPeriod(1);
-    
-    // Move to game screen
-    setActiveScreen('game');
-  };
-
-  const togglePlayerOnCourt = (outPlayerId, inPlayerId) => {
-    if (!gameData) return;
-    
-    setGameData(prev => ({
-      ...prev,
-      players: prev.players.map(player => {
-        if (player.id === outPlayerId) {
-          const now = Date.now();
-          const updatedPlayer = {
-            ...player,
-            onCourt: false,
-            playing: false,
-            lastTimeUpdate: now
-          };
-          
-          // Stop timer if playing
-          if (player.playing && player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-            updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-              idx === player.timeIntervals.length - 1 
-                ? { ...interval, end: now } 
-                : interval
-            );
-          }
-          
-          return updatedPlayer;
+        .player-card {
+            transition: all 0.3s ease;
         }
-        
-        if (player.id === inPlayerId) {
-          const now = Date.now();
-          const updatedPlayer = {
-            ...player,
-            onCourt: true,
-            playing: gameStarted,
-            lastTimeUpdate: now
-          };
-          
-          // Start timer if game is running
-          if (gameStarted) {
-            updatedPlayer.timeIntervals = [
-              ...player.timeIntervals,
-              { start: now, end: null }
-            ];
-          }
-          
-          return updatedPlayer;
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
-        
-        return player;
-      })
-    }));
-    
-    setShowSubstitution(false);
-    setSelectedSubstitute(null);
-    setPlayerToSubstitute(null);
-  };
-
-  const makeSubstitution = (outPlayer) => {
-    if (gameStarted) {
-      alert('Substitutions can only be made when the game is stopped!');
-      return;
-    }
-    
-    setPlayerToSubstitute(outPlayer);
-    setShowSubstitution(true);
-  };
-
-  const confirmSubstitution = () => {
-    if (selectedSubstitute && playerToSubstitute) {
-      togglePlayerOnCourt(playerToSubstitute.id, selectedSubstitute.id);
-    }
-  };
-
-  const togglePlayerPlaying = (playerId) => {
-    if (!gameData || !gameStarted) return;
-    
-    setGameData(prev => ({
-      ...prev,
-      players: prev.players.map(player => {
-        if (player.id === playerId && player.onCourt) {
-          const now = Date.now();
-          const updatedPlayer = {
-            ...player,
-            playing: !player.playing,
-            lastTimeUpdate: now
-          };
-          
-          if (player.playing) {
-            // Stopping play
-            if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-              updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-                idx === player.timeIntervals.length - 1 
-                  ? { ...interval, end: now } 
-                  : interval
-              );
-            }
-          } else {
-            // Starting play
-            updatedPlayer.timeIntervals = [
-              ...player.timeIntervals,
-              { start: now, end: null }
-            ];
-          }
-          
-          return updatedPlayer;
+        .btn {
+            transition: all 0.2s ease;
         }
-        return player;
-      })
-    }));
-  };
-
-  const updatePlayerScore = (playerId, points) => {
-    if (!gameData) return;
-    
-    setGameData(prev => ({
-      ...prev,
-      players: prev.players.map(player => {
-        if (player.id === playerId) {
-          return {
-            ...player,
-            score: Math.max(0, player.score + points)
-          };
+        .btn:hover {
+            transform: translateY(-1px);
         }
-        return player;
-      })
-    }));
-  };
-
-  const updatePlayerFouls = (playerId, change) => {
-    if (!gameData) return;
-    
-    setGameData(prev => ({
-      ...prev,
-      players: prev.players.map(player => {
-        if (player.id === playerId) {
-          const newFouls = Math.max(0, Math.min(6, player.fouls + change));
-          return {
-            ...player,
-            fouls: newFouls
-          };
+        .fault-limit {
+            animation: pulse 1.5s infinite;
         }
-        return player;
-      })
-    }));
-  };
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .timer {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const App = () => {
+            const [activeScreen, setActiveScreen] = React.useState('home');
+            const [teams, setTeams] = React.useState(() => {
+                const saved = localStorage.getItem('basketball-teams');
+                return saved ? JSON.parse(saved) : [
+                    { id: 1, name: 'Home Team', players: [] }
+                ];
+            });
+            const [currentTeamId, setCurrentTeamId] = React.useState(1);
+            const [newPlayerName, setNewPlayerName] = React.useState('');
+            const [newPlayerNumber, setNewPlayerNumber] = React.useState('');
+            const [newTeamName, setNewTeamName] = React.useState('');
+            
+            // Game tracking state
+            const [gameStarted, setGameStarted] = React.useState(false);
+            const [gameTime, setGameTime] = React.useState(0);
+            const [currentPeriod, setCurrentPeriod] = React.useState(1);
+            const [gameTimer, setGameTimer] = React.useState(null);
+            const [gameData, setGameData] = React.useState(null);
+            const [showGameSummary, setShowGameSummary] = React.useState(false);
+            const [showSubstitution, setShowSubstitution] = React.useState(false);
+            const [selectedSubstitute, setSelectedSubstitute] = React.useState(null);
+            const [playerToSubstitute, setPlayerToSubstitute] = React.useState(null);
+            const [showEndGameConfirm, setShowEndGameConfirm] = React.useState(false);
+            const [selectedPlayer, setSelectedPlayer] = React.useState(null);
+            
+            // Stats state
+            const [savedGames, setSavedGames] = React.useState(() => {
+                const saved = localStorage.getItem('basketball-games');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [selectedGame, setSelectedGame] = React.useState(null);
 
-  // Game timer effect
-  useEffect(() => {
-    if (gameStarted && gameData && activeScreen === 'game') {
-      const timer = setInterval(() => {
-        setGameTime(prevTime => {
-          const newTime = prevTime + 1;
-          // Update player timers if they're playing
-          setGameData(prev => ({
-            ...prev,
-            players: prev.players.map(player => {
-              if (player.onCourt && player.playing && player.lastTimeUpdate) {
-                const timeDiff = Math.floor((Date.now() - player.lastTimeUpdate) / 1000);
-                return {
-                  ...player,
-                  timeOnCourt: player.timeOnCourt + timeDiff,
-                  lastTimeUpdate: Date.now()
+            // Setup configuration
+            const [setupConfig, setSetupConfig] = React.useState(() => {
+                const saved = localStorage.getItem('basketball-setup');
+                const defaultConfig = {
+                    periods: 4,
+                    periodDuration: 600
                 };
-              }
-              return player;
-            })
-          }));
-          return newTime;
-        });
-      }, 1000);
-      
-      setGameTimer(timer);
-      return () => clearInterval(timer);
-    } else {
-      if (gameTimer) {
-        clearInterval(gameTimer);
-        setGameTimer(null);
-      }
-    }
-  }, [gameStarted, gameData, activeScreen]);
+                return saved ? JSON.parse(saved) : defaultConfig;
+            });
 
-  const toggleGameTimer = () => {
-    setGameStarted(!gameStarted);
-    
-    // Update all players' playing status when game timer changes
-    if (gameData) {
-      setGameData(prev => ({
-        ...prev,
-        players: prev.players.map(player => {
-          if (player.onCourt && !gameStarted) {
-            // Starting game - all on-court players start playing
-            const now = Date.now();
-            return {
-              ...player,
-              playing: true,
-              lastTimeUpdate: now,
-              timeIntervals: [
-                ...player.timeIntervals,
-                { start: now, end: null }
-              ]
-            };
-          } else if (player.onCourt && gameStarted) {
-            // Pausing game - all playing players stop
-            const now = Date.now();
-            if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-              return {
-                ...player,
-                playing: false,
-                lastTimeUpdate: now,
-                timeIntervals: player.timeIntervals.map((interval, idx) => 
-                  idx === player.timeIntervals.length - 1 
-                    ? { ...interval, end: now } 
-                    : interval
-                )
-              };
-            }
-          }
-          return player;
-        })
-      }));
-    }
-  };
+            // Save to localStorage
+            React.useEffect(() => {
+                localStorage.setItem('basketball-teams', JSON.stringify(teams));
+            }, [teams]);
 
-  const requestEndGame = () => {
-    if (gameStarted) {
-      setShowEndGameConfirm(true);
-    } else {
-      endGame();
-    }
-  };
+            React.useEffect(() => {
+                localStorage.setItem('basketball-games', JSON.stringify(savedGames));
+            }, [savedGames]);
 
-  const confirmEndGame = () => {
-    setShowEndGameConfirm(false);
-    endGame();
-  };
+            React.useEffect(() => {
+                localStorage.setItem('basketball-setup', JSON.stringify(setupConfig));
+            }, [setupConfig]);
 
-  const cancelEndGame = () => {
-    setShowEndGameConfirm(false);
-  };
+            const currentTeam = teams.find(t => t.id === currentTeamId) || teams[0];
+            const onCourtPlayers = gameData?.players.filter(p => p.onCourt) || [];
+            const benchPlayers = gameData?.players.filter(p => !p.onCourt) || [];
 
-  const endGame = () => {
-    if (gameData) {
-      const endTime = Date.now();
-      const finalGameData = {
-        ...gameData,
-        endTime,
-        finalTime: gameTime,
-        period: currentPeriod,
-        players: gameData.players.map(player => {
-          // Finalize any open time intervals
-          let finalPlayer = { ...player };
-          if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-            finalPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-              idx === player.timeIntervals.length - 1 
-                ? { ...interval, end: endTime } 
-                : interval
-            );
-          }
-          return finalPlayer;
-        })
-      };
-      
-      // Save game data
-      setSavedGames(prev => [finalGameData, ...prev]);
-      
-      // Reset game state
-      setGameData(null);
-      setGameTime(0);
-      setGameStarted(false);
-      setCurrentPeriod(1);
-      setShowGameSummary(true);
-      setActiveScreen('home');
-    }
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getTotalPlayingTime = (player) => {
-    return player.timeIntervals.reduce((total, interval) => {
-      const end = interval.end || Date.now();
-      return total + Math.floor((end - interval.start) / 1000);
-    }, player.timeOnCourt);
-  };
-
-  const getPeriodTime = () => {
-    const remaining = setupConfig.periodDuration - (gameTime % setupConfig.periodDuration);
-    return formatTime(remaining);
-  };
-
-  // Sort players by number
-  const sortedOnCourtPlayers = [...onCourtPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
-  const sortedAllPlayers = [...currentTeam.players].sort((a, b) => parseInt(a.number) - parseInt(b.number));
-  const sortedBenchPlayers = [...benchPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
-
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
-      {/* Header */}
-      <div className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">Basketball Tracker</h1>
-          {(activeScreen !== 'home' && activeScreen !== 'gameDetails' && activeScreen !== 'playerTimeline') && (
-            <button
-              onClick={() => {
-                if (activeScreen === 'game') {
-                  // Don't allow back during game
-                  return;
-                } else if (activeScreen === 'selectPlayers') {
-                  setActiveScreen('home');
-                  setGameData(null);
-                } else {
-                  setActiveScreen('home');
-                }
-              }}
-              className={`px-3 py-1 rounded text-sm hover:bg-blue-400 transition-colors ${
-                activeScreen === 'game' ? 'opacity-50 cursor-not-allowed' : 'bg-blue-500'
-              }`}
-            >
-              Back
-            </button>
-          )}
-        </div>
-        <p className="text-blue-100 text-sm">Track your games</p>
-      </div>
-
-      {/* Home Screen */}
-      {activeScreen === 'home' && (
-        <div className="p-4">
-          <div className="grid grid-cols-1 gap-4 mt-6">
-            <button
-              onClick={() => setActiveScreen('manageTeam')}
-              className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
-            >
-              <div className="text-3xl mb-2">👥</div>
-              <h3 className="font-semibold text-gray-800">Manage Team</h3>
-              <p className="text-sm text-gray-500 mt-1">Create and edit teams and players</p>
-            </button>
-            
-            <button
-              onClick={selectStartingPlayers}
-              className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
-            >
-              <div className="text-3xl mb-2">🏀</div>
-              <h3 className="font-semibold text-gray-800">Start a Game</h3>
-              <p className="text-sm text-gray-500 mt-1">Begin tracking a new game</p>
-            </button>
-            
-            <button
-              onClick={() => setActiveScreen('stats')}
-              disabled={!savedGames.length}
-              className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="text-3xl mb-2">📊</div>
-              <h3 className="font-semibold text-gray-800">View Stats</h3>
-              <p className="text-sm text-gray-500 mt-1">See game statistics and history</p>
-            </button>
-            
-            <button
-              onClick={() => setActiveScreen('setup')}
-              className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
-            >
-              <div className="text-3xl mb-2">⚙️</div>
-              <h3 className="font-semibold text-gray-800">Setup</h3>
-              <p className="text-sm text-gray-500 mt-1">Configure app settings</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Manage Team Screen */}
-      {activeScreen === 'manageTeam' && (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Manage Teams</h2>
-          
-          {/* Team Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Team</label>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {teams.map(team => (
-                <button
-                  key={team.id}
-                  onClick={() => setCurrentTeamId(team.id)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    currentTeamId === team.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {team.name}
-                </button>
-              ))}
-            </div>
-            
-            {/* Add New Team */}
-            <div className="flex gap-2 mb-6">
-              <input
-                type="text"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="New team name"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={addTeam}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Current Team Players */}
-          {currentTeam && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-800">{currentTeam.name} Players</h3>
-                <span className="text-sm text-gray-500">{currentTeam.players.length} players</span>
-              </div>
-              
-              {currentTeam.players.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                  No players added yet
-                </div>
-              ) : (
-                <div className="space-y-2 mb-4">
-                  {sortedAllPlayers.map(player => (
-                    <div key={player.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                          {player.number}
-                        </div>
-                        <span className="font-medium text-gray-800">{player.name}</span>
-                      </div>
-                      <button
-                        onClick={() => removePlayer(player.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Add Player Form */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newPlayerName}
-                  onChange={(e) => setNewPlayerName(e.target.value)}
-                  placeholder="Player name"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={newPlayerNumber}
-                  onChange={(e) => setNewPlayerNumber(e.target.value)}
-                  placeholder="#"
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={addPlayer}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Select Starting Players Screen */}
-      {activeScreen === 'selectPlayers' && gameData && (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Select Starting Players</h2>
-          <p className="text-sm text-gray-600 mb-4">Select exactly 5 players to start the game:</p>
-          
-          {/* Team and Setup Info */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-blue-800">{currentTeam.name}</h3>
-                <p className="text-sm text-blue-700">
-                  {setupConfig.periods} periods of {setupConfig.periodDuration/60} min each
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* All Players List */}
-          <div className="space-y-2 mb-6">
-            {sortedAllPlayers.map(player => {
-              const playerInGame = gameData.players.find(p => p.id === player.id);
-              const isOnCourt = playerInGame?.onCourt;
-              const isFouledOut = player.fouls >= 5;
-              
-              return (
-                <div key={player.id} className={`p-3 border rounded-lg transition-all ${
-                  isOnCourt ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                } ${isFouledOut ? 'opacity-50' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
-                        {player.number}
-                      </div>
-                      <div>
-                        <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
-                          {player.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          F: {player.fouls}/5
-                        </div>
-                      </div>
-                    </div>
+            const addPlayer = () => {
+                if (newPlayerName.trim() && newPlayerNumber.trim()) {
+                    const numberExists = currentTeam.players.some(player => 
+                        player.number === newPlayerNumber.trim()
+                    );
                     
-                    <button
-                      onClick={() => {
-                        if (isFouledOut) return;
-                        
-                        const onCourtCount = gameData.players.filter(p => p.onCourt).length;
-                        const willBeOnCourt = !isOnCourt;
-                        
-                        if (willBeOnCourt && onCourtCount >= 5) {
-                          alert('Maximum of 5 players allowed on court!');
-                          return;
+                    if (numberExists) {
+                        alert(`Player number ${newPlayerNumber.trim()} is already in use!`);
+                        return;
+                    }
+                    
+                    const updatedTeams = teams.map(team => {
+                        if (team.id === currentTeamId) {
+                            return {
+                                ...team,
+                                players: [
+                                    ...team.players,
+                                    {
+                                        id: Date.now(),
+                                        name: newPlayerName.trim(),
+                                        number: newPlayerNumber.trim(),
+                                        onCourt: false,
+                                        playing: false,
+                                        score: 0,
+                                        fouls: 0,
+                                        timeOnCourt: 0,
+                                        timeIntervals: []
+                                    }
+                                ]
+                            };
+                        }
+                        return team;
+                    });
+                    setTeams(updatedTeams);
+                    setNewPlayerName('');
+                    setNewPlayerNumber('');
+                }
+            };
+
+            const removePlayer = (playerId) => {
+                const updatedTeams = teams.map(team => {
+                    if (team.id === currentTeamId) {
+                        return {
+                            ...team,
+                            players: team.players.filter(p => p.id !== playerId)
+                        };
+                    }
+                    return team;
+                });
+                setTeams(updatedTeams);
+            };
+
+            const addTeam = () => {
+                if (newTeamName.trim()) {
+                    const newTeam = {
+                        id: Date.now(),
+                        name: newTeamName.trim(),
+                        players: []
+                    };
+                    setTeams([...teams, newTeam]);
+                    setCurrentTeamId(newTeam.id);
+                    setNewTeamName('');
+                }
+            };
+
+            const selectStartingPlayers = () => {
+                if (currentTeam.players.length < 5) {
+                    alert('You need at least 5 players to start a game!');
+                    return;
+                }
+                
+                const playersWithCourtStatus = currentTeam.players.map(p => ({
+                    ...p,
+                    onCourt: false,
+                    playing: false,
+                    timeIntervals: [],
+                    lastTimeUpdate: null
+                }));
+                
+                setGameData({
+                    teamId: currentTeamId,
+                    teamName: currentTeam.name,
+                    startTime: Date.now(),
+                    endTime: null,
+                    period: 1,
+                    periods: setupConfig.periods,
+                    periodDuration: setupConfig.periodDuration,
+                    players: playersWithCourtStatus
+                });
+                setActiveScreen('selectPlayers');
+            };
+
+            const confirmStartingPlayers = () => {
+                const onCourtCount = gameData.players.filter(p => p.onCourt).length;
+                
+                if (onCourtCount !== 5) {
+                    alert('You must select exactly 5 starting players!');
+                    return;
+                }
+                
+                setGameStarted(false);
+                setGameTime(0);
+                setCurrentPeriod(1);
+                setActiveScreen('game');
+            };
+
+            const togglePlayerOnCourt = (outPlayerId, inPlayerId) => {
+                if (!gameData) return;
+                
+                setGameData(prev => ({
+                    ...prev,
+                    players: prev.players.map(player => {
+                        if (player.id === outPlayerId) {
+                            const now = Date.now();
+                            const updatedPlayer = {
+                                ...player,
+                                onCourt: false,
+                                playing: false,
+                                lastTimeUpdate: now
+                            };
+                            
+                            if (player.playing && player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
+                                    idx === player.timeIntervals.length - 1 
+                                        ? { ...interval, end: now } 
+                                        : interval
+                                );
+                            }
+                            
+                            return updatedPlayer;
                         }
                         
-                        setGameData(prev => ({
-                          ...prev,
-                          players: prev.players.map(p => 
-                            p.id === player.id 
-                              ? { ...p, onCourt: !isOnCourt }
-                              : p
-                          )
-                        }));
-                      }}
-                      disabled={isFouledOut}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        isOnCourt
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : isFouledOut
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {isOnCourt ? 'On Court' : 'Add'}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Selected Count */}
-          <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
-            <span className="font-medium">
-              {gameData.players.filter(p => p.onCourt).length} / 5 players selected
-            </span>
-          </div>
-
-          {/* Confirm Button */}
-          <button
-            onClick={confirmStartingPlayers}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors"
-          >
-            Start Game with Selected Players
-          </button>
-        </div>
-      )}
-
-      {/* Game Tracking Screen */}
-      {activeScreen === 'game' && gameData && (
-        <div className="p-4">
-          {/* Team Header */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold text-blue-800">{currentTeam.name}</h2>
-                <p className="text-sm text-blue-700">
-                  Period {currentPeriod}/{setupConfig.periods}
-                </p>
-              </div>
-              <div className="text-sm text-blue-700">
-                {setupConfig.periodDuration/60} min periods
-              </div>
-            </div>
-          </div>
-
-          {/* Game Timer */}
-          <div className="text-center mb-6">
-            <div className="bg-gray-800 text-white rounded-lg p-4 mb-3">
-              <div className="text-3xl font-mono">{getPeriodTime()}</div>
-              <div className="text-sm text-gray-300 mt-1">Game Clock</div>
-            </div>
-            <button
-              onClick={toggleGameTimer}
-              className={`px-8 py-3 rounded-lg font-medium text-white text-sm transition-all ${
-                gameStarted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {gameStarted ? 'Pause Game' : 'Start Game'}
-            </button>
-          </div>
-
-          {/* On Court Players (Always visible, 5 players) */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-800 mb-3">On Court Players</h3>
-            <div className="space-y-3">
-              {sortedOnCourtPlayers.map(player => {
-                const playerInGame = gameData.players.find(p => p.id === player.id);
-                const totalTime = getTotalPlayingTime(playerInGame);
-                const isFouledOut = playerInGame.fouls >= 5;
-                const isCloseToFoulingOut = playerInGame.fouls >= 4;
+                        if (player.id === inPlayerId) {
+                            const now = Date.now();
+                            const updatedPlayer = {
+                                ...player,
+                                onCourt: true,
+                                playing: gameStarted,
+                                lastTimeUpdate: now
+                            };
+                            
+                            if (gameStarted) {
+                                updatedPlayer.timeIntervals = [
+                                    ...player.timeIntervals,
+                                    { start: now, end: null }
+                                ];
+                            }
+                            
+                            return updatedPlayer;
+                        }
+                        
+                        return player;
+                    })
+                }));
                 
-                return (
-                  <div key={player.id} className={`p-4 border rounded-lg transition-all ${
-                    isFouledOut ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
-                  }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          onClick={() => gameStarted && togglePlayerPlaying(player.id)}
-                          className={`cursor-pointer ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
-                              {player.number}
-                            </div>
-                            <div>
-                              <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
-                                {player.name}
-                              </div>
-                              <div className="text-xs text-gray-500 timer">
-                                {formatTime(totalTime)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => makeSubstitution(player)}
-                          disabled={gameStarted}
-                          className={`px-2 py-1 text-xs font-medium rounded ${
-                            gameStarted 
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                              : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
-                          }`}
-                        >
-                          Sub
-                        </button>
-                        <div className={`text-sm font-medium px-3 py-1.5 rounded text-center min-w-16 ${
-                          isCloseToFoulingOut 
-                            ? 'bg-yellow-100 text-yellow-800 animate-pulse' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          F: {playerInGame.fouls}/5
-                        </div>
-                      </div>
-                    </div>
+                setShowSubstitution(false);
+                setSelectedSubstitute(null);
+                setPlayerToSubstitute(null);
+            };
+
+            const makeSubstitution = (outPlayer) => {
+                if (gameStarted) {
+                    alert('Substitutions can only be made when the game is stopped!');
+                    return;
+                }
+                
+                setPlayerToSubstitute(outPlayer);
+                setShowSubstitution(true);
+            };
+
+            const confirmSubstitution = () => {
+                if (selectedSubstitute && playerToSubstitute) {
+                    togglePlayerOnCourt(playerToSubstitute.id, selectedSubstitute.id);
+                }
+            };
+
+            const togglePlayerPlaying = (playerId) => {
+                if (!gameData || !gameStarted) return;
+                
+                setGameData(prev => ({
+                    ...prev,
+                    players: prev.players.map(player => {
+                        if (player.id === playerId && player.onCourt) {
+                            const now = Date.now();
+                            const updatedPlayer = {
+                                ...player,
+                                playing: !player.playing,
+                                lastTimeUpdate: now
+                            };
+                            
+                            if (player.playing) {
+                                if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                    updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
+                                        idx === player.timeIntervals.length - 1 
+                                            ? { ...interval, end: now } 
+                                            : interval
+                                    );
+                                }
+                            } else {
+                                updatedPlayer.timeIntervals = [
+                                    ...player.timeIntervals,
+                                    { start: now, end: null }
+                                ];
+                            }
+                            
+                            return updatedPlayer;
+                        }
+                        return player;
+                    })
+                }));
+            };
+
+            const updatePlayerScore = (playerId, points) => {
+                if (!gameData) return;
+                
+                setGameData(prev => ({
+                    ...prev,
+                    players: prev.players.map(player => {
+                        if (player.id === playerId) {
+                            return {
+                                ...player,
+                                score: Math.max(0, player.score + points)
+                            };
+                        }
+                        return player;
+                    })
+                }));
+            };
+
+            const updatePlayerFouls = (playerId, change) => {
+                if (!gameData) return;
+                
+                setGameData(prev => ({
+                    ...prev,
+                    players: prev.players.map(player => {
+                        if (player.id === playerId) {
+                            const newFouls = Math.max(0, Math.min(6, player.fouls + change));
+                            return {
+                                ...player,
+                                fouls: newFouls
+                            };
+                        }
+                        return player;
+                    })
+                }));
+            };
+
+            // Game timer effect
+            React.useEffect(() => {
+                if (gameStarted && gameData && activeScreen === 'game') {
+                    const timer = setInterval(() => {
+                        setGameTime(prevTime => {
+                            const newTime = prevTime + 1;
+                            setGameData(prev => ({
+                                ...prev,
+                                players: prev.players.map(player => {
+                                    if (player.onCourt && player.playing && player.lastTimeUpdate) {
+                                        const timeDiff = Math.floor((Date.now() - player.lastTimeUpdate) / 1000);
+                                        return {
+                                            ...player,
+                                            timeOnCourt: player.timeOnCourt + timeDiff,
+                                            lastTimeUpdate: Date.now()
+                                        };
+                                    }
+                                    return player;
+                                })
+                            }));
+                            return newTime;
+                        });
+                    }, 1000);
                     
-                    {/* Action buttons */}
-                    <div className="grid grid-cols-6 gap-1 mb-2">
-                      <button
-                        onClick={() => updatePlayerScore(player.id, 1)}
-                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
-                      >
-                        +1
-                      </button>
-                      <button
-                        onClick={() => updatePlayerScore(player.id, 2)}
-                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
-                      >
-                        +2
-                      </button>
-                      <button
-                        onClick={() => updatePlayerScore(player.id, 3)}
-                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
-                      >
-                        +3
-                      </button>
-                      <button
-                        onClick={() => updatePlayerFouls(player.id, 1)}
-                        className="py-2 bg-red-100 text-red-800 rounded text-sm font-medium hover:bg-red-200 transition-colors"
-                      >
-                        F
-                      </button>
-                      <button
-                        onClick={() => updatePlayerScore(player.id, -1)}
-                        className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
-                      >
-                        -1
-                      </button>
-                      <button
-                        onClick={() => updatePlayerFouls(player.id, -1)}
-                        className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
-                      >
-                        -F
-                      </button>
-                    </div>
+                    setGameTimer(timer);
+                    return () => clearInterval(timer);
+                } else {
+                    if (gameTimer) {
+                        clearInterval(gameTimer);
+                        setGameTimer(null);
+                    }
+                }
+            }, [gameStarted, gameData, activeScreen]);
+
+            const toggleGameTimer = () => {
+                setGameStarted(!gameStarted);
+                
+                if (gameData) {
+                    setGameData(prev => ({
+                        ...prev,
+                        players: prev.players.map(player => {
+                            if (player.onCourt && !gameStarted) {
+                                const now = Date.now();
+                                return {
+                                    ...player,
+                                    playing: true,
+                                    lastTimeUpdate: now,
+                                    timeIntervals: [
+                                        ...player.timeIntervals,
+                                        { start: now, end: null }
+                                    ]
+                                };
+                            } else if (player.onCourt && gameStarted) {
+                                const now = Date.now();
+                                if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                    return {
+                                        ...player,
+                                        playing: false,
+                                        lastTimeUpdate: now,
+                                        timeIntervals: player.timeIntervals.map((interval, idx) => 
+                                            idx === player.timeIntervals.length - 1 
+                                                ? { ...interval, end: now } 
+                                                : interval
+                                        )
+                                    };
+                                }
+                            }
+                            return player;
+                        })
+                    }));
+                }
+            };
+
+            const requestEndGame = () => {
+                if (gameStarted) {
+                    setShowEndGameConfirm(true);
+                } else {
+                    endGame();
+                }
+            };
+
+            const confirmEndGame = () => {
+                setShowEndGameConfirm(false);
+                endGame();
+            };
+
+            const cancelEndGame = () => {
+                setShowEndGameConfirm(false);
+            };
+
+            const endGame = () => {
+                if (gameData) {
+                    const endTime = Date.now();
+                    const finalGameData = {
+                        ...gameData,
+                        endTime,
+                        finalTime: gameTime,
+                        period: currentPeriod,
+                        players: gameData.players.map(player => {
+                            let finalPlayer = { ...player };
+                            if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                finalPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
+                                    idx === player.timeIntervals.length - 1 
+                                        ? { ...interval, end: endTime } 
+                                        : interval
+                                );
+                            }
+                            return finalPlayer;
+                        })
+                    };
                     
-                    {/* Score display */}
-                    <div className="flex justify-between items-center">
-                      <div className={`text-2xl font-bold ${playerInGame.score > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
-                        {playerInGame.score}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        points
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                    setSavedGames(prev => [finalGameData, ...prev]);
+                    
+                    setGameData(null);
+                    setGameTime(0);
+                    setGameStarted(false);
+                    setCurrentPeriod(1);
+                    setShowGameSummary(true);
+                    setActiveScreen('home');
+                }
+            };
 
-          {/* End Game Button */}
-          <div className="pt-6 border-t border-gray-200">
-            <button
-              onClick={requestEndGame}
-              className="w-full py-3 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition-colors"
-            >
-              End Game
-            </button>
-          </div>
-        </div>
-      )}
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
 
-      {/* Substitution Modal */}
-      {showSubstitution && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-800">Make Substitution</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Replace {playerToSubstitute?.name} #{playerToSubstitute?.number}
-              </p>
-            </div>
-            
-            <div className="p-4 max-h-60 overflow-y-auto">
-              <p className="text-sm text-gray-600 mb-3">Select player to enter:</p>
-              <div className="space-y-2">
-                {sortedBenchPlayers.map(player => {
-                  const playerInGame = gameData?.players.find(p => p.id === player.id);
-                  const isFouledOut = playerInGame?.fouls >= 5;
-                  return (
-                    <div
-                      key={player.id}
-                      onClick={() => !isFouledOut && setSelectedSubstitute(player)}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                        selectedSubstitute?.id === player.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
-                            {player.number}
-                          </div>
-                          <div>
-                            <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
-                              {player.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              F: {playerInGame?.fouls}/5
-                            </div>
-                          </div>
-                        </div>
-                        {selectedSubstitute?.id === player.id && (
-                          <div className="text-blue-600 font-bold">✓</div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="p-4 border-t border-gray-200 flex space-x-3">
-              <button
-                onClick={() => {
-                  setShowSubstitution(false);
-                  setSelectedSubstitute(null);
-                  setPlayerToSubstitute(null);
-                }}
-                className="flex-1 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmSubstitution}
-                disabled={!selectedSubstitute}
-                className="flex-1 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            const getTotalPlayingTime = (player) => {
+                return player.timeIntervals.reduce((total, interval) => {
+                    const end = interval.end || Date.now();
+                    return total + Math.floor((end - interval.start) / 1000);
+                }, player.timeOnCourt);
+            };
 
-      {/* End Game Confirmation Modal */}
-      {showEndGameConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-800">Confirm End Game</h3>
-            </div>
-            
-            <div className="p-4">
-              <p className="text-gray-600 mb-4">
-                The game is still running. Are you sure you want to end it now?
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={confirmEndGame}
-                  className="w-full py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
-                >
-                  Yes, End Game
-                </button>
-                <button
-                  onClick={cancelEndGame}
-                  className="w-full py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
-                >
-                  Continue Game
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            const getPeriodTime = () => {
+                const remaining = setupConfig.periodDuration - (gameTime % setupConfig.periodDuration);
+                return formatTime(remaining);
+            };
 
-      {/* Stats Screen */}
-      {activeScreen === 'stats' && (
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-800">Game Statistics</h2>
-            <button
-              onClick={() => setActiveScreen('home')}
-              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
-            >
-              Back
-            </button>
-          </div>
-
-          {savedGames.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-6xl mb-4">📊</div>
-              <p className="text-lg font-medium">No games tracked yet</p>
-              <p className="text-sm">Start tracking games to view statistics</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {savedGames.map((game, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="font-medium text-gray-800">{game.teamName}</h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(game.startTime).toLocaleDateString()} • 
-                        {game.periods} periods • 
-                        {formatTime(game.finalTime)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedGame(game);
-                        setActiveScreen('gameDetails');
-                      }}
-                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
-                    >
-                      Details
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Game Details Screen */}
-      {activeScreen === 'gameDetails' && selectedGame && (
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-800">Game Details</h2>
-            <button
-              onClick={() => setActiveScreen('stats')}
-              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
-            >
-              Back
-            </button>
-          </div>
-
-          {/* Game Info */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-medium text-blue-800 mb-2">{selectedGame.teamName}</h3>
-            <div className="space-y-2 text-sm text-blue-700">
-              <p>Date: {new Date(selectedGame.startTime).toLocaleDateString()}</p>
-              <p>Duration: {formatTime(selectedGame.finalTime)}</p>
-              <p>Periods: {selectedGame.periods}</p>
-              <p>Period Duration: {selectedGame.periodDuration/60} minutes</p>
-            </div>
-          </div>
-
-          {/* Player List with Timeline Button */}
-          <div className="space-y-3">
-            {selectedGame.players.map(player => {
-              const totalTime = player.timeIntervals.reduce((total, interval) => {
-                const end = interval.end || selectedGame.endTime;
-                return total + Math.floor((end - interval.start) / 1000);
-              }, 0);
-              
-              return (
-                <div key={player.id} className="p-4 border rounded-lg bg-white border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        {player.number}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-800">{player.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {formatTime(totalTime)} • {player.fouls} fouls
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-blue-600">{player.score}</div>
-                      <div className="text-xs text-gray-500">points</div>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedPlayer(player);
-                      setActiveScreen('playerTimeline');
-                    }}
-                    className="w-full mt-2 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
-                  >
-                    View Timeline
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Player Timeline Screen */}
-      {activeScreen === 'playerTimeline' && selectedPlayer && selectedGame && (
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-800">Player Timeline</h2>
-            <button
-              onClick={() => setActiveScreen('gameDetails')}
-              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
-            >
-              Back
-            </button>
-          </div>
-
-          {/* Player Info */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                {selectedPlayer.number}
-              </div>
-              <div>
-                <h3 className="font-semibold text-blue-800">{selectedPlayer.name}</h3>
-                <div className="text-sm text-blue-700">
-                  {selectedPlayer.score} points • {selectedPlayer.fouls} fouls
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline for each period */}
-          {Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(period => {
-            const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
-            const periodEnd = period * selectedGame.periodDuration * 1000;
-            const periodDuration = selectedGame.periodDuration;
-            
-            // Get intervals for this period
-            const periodIntervals = selectedPlayer.timeIntervals
-              .filter(interval => {
-                const start = interval.start - selectedGame.startTime;
-                const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
-                return start < periodEnd && end > periodStart;
-              })
-              .map(interval => {
-                const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
-                const end = interval.end 
-                  ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
-                  : periodDuration * 1000;
-                return {
-                  start: start / 1000,
-                  end: end / 1000
-                };
-              });
-
-            // Get events for this period
-            const events = [];
-            // This would be populated with actual game events
-            // For now, we'll just show the timeline
+            // Sort players by number
+            const sortedOnCourtPlayers = [...onCourtPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            const sortedAllPlayers = [...currentTeam.players].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            const sortedBenchPlayers = [...benchPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
 
             return (
-              <div key={period} className="mb-6">
-                <h3 className="font-medium text-gray-800 mb-3">Period {period}</h3>
-                <div className="bg-gray-100 rounded-lg p-4">
-                  {/* Timeline */}
-                  <div className="relative h-8 bg-white rounded mb-4">
-                    {/* Bench time (red) */}
-                    <div className="absolute top-0 left-0 h-full w-full bg-red-200 rounded"></div>
-                    
-                    {/* Playing time (green) */}
-                    {periodIntervals.map((interval, idx) => {
-                      const width = ((interval.end - interval.start) / periodDuration) * 100;
-                      const left = (interval.start / periodDuration) * 100;
-                      return (
-                        <div
-                          key={idx}
-                          className="absolute top-0 bg-green-500 h-full rounded"
-                          style={{ left: `${left}%`, width: `${width}%` }}
-                        ></div>
-                      );
-                    })}
-                    
-                    {/* Period markers */}
-                    <div className="absolute top-0 left-0 h-full w-0.5 bg-gray-400"></div>
-                    <div className="absolute top-0 right-0 h-full w-0.5 bg-gray-400"></div>
-                    
-                    {/* Time markers */}
-                    {Array.from({ length: 6 }, (_, i) => i * 2).map(minute => (
-                      <div key={minute} className="absolute top-0 h-full w-0.5 bg-gray-300" style={{ left: `${(minute * 60) / periodDuration * 100}%` }}>
-                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600">
-                          {minute}'
+                <div className="max-w-md mx-auto bg-white min-h-screen">
+                    {/* Header */}
+                    <div className="bg-blue-600 text-white p-4 shadow-md">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-xl font-bold">Basketball Tracker</h1>
+                            {(activeScreen !== 'home' && activeScreen !== 'game' && activeScreen !== 'selectPlayers') && (
+                                <button
+                                    onClick={() => {
+                                        if (activeScreen === 'selectPlayers') {
+                                            setActiveScreen('home');
+                                            setGameData(null);
+                                        } else {
+                                            setActiveScreen('home');
+                                        }
+                                    }}
+                                    className="px-3 py-1 bg-blue-500 rounded text-sm hover:bg-blue-400 transition-colors"
+                                >
+                                    Back
+                                </button>
+                            )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Events */}
-                  <div className="text-sm text-gray-600">
-                    {periodIntervals.length > 0 ? (
-                      <p>Played {formatTime(periodIntervals.reduce((total, interval) => total + (interval.end - interval.start), 0))}</p>
-                    ) : (
-                      <p>Did not play</p>
+                        <p className="text-blue-100 text-sm">Track your games</p>
+                    </div>
+
+                    {/* Home Screen */}
+                    {activeScreen === 'home' && (
+                        <div className="p-4">
+                            <div className="grid grid-cols-1 gap-4 mt-6">
+                                <button
+                                    onClick={() => setActiveScreen('manageTeam')}
+                                    className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
+                                >
+                                    <div className="text-3xl mb-2">👥</div>
+                                    <h3 className="font-semibold text-gray-800">Manage Team</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Create and edit teams and players</p>
+                                </button>
+                                
+                                <button
+                                    onClick={selectStartingPlayers}
+                                    className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
+                                >
+                                    <div className="text-3xl mb-2">🏀</div>
+                                    <h3 className="font-semibold text-gray-800">Start a Game</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Begin tracking a new game</p>
+                                </button>
+                                
+                                <button
+                                    onClick={() => setActiveScreen('stats')}
+                                    disabled={!savedGames.length}
+                                    className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <div className="text-3xl mb-2">📊</div>
+                                    <h3 className="font-semibold text-gray-800">View Stats</h3>
+                                    <p className="text-sm text-gray-500 mt-1">See game statistics and history</p>
+                                </button>
+                                
+                                <button
+                                    onClick={() => setActiveScreen('setup')}
+                                    className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
+                                >
+                                    <div className="text-3xl mb-2">⚙️</div>
+                                    <h3 className="font-semibold text-gray-800">Setup</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Configure app settings</p>
+                                </button>
+                            </div>
+                        </div>
                     )}
-                  </div>
+
+                    {/* Manage Team Screen */}
+                    {activeScreen === 'manageTeam' && (
+                        <div className="p-4">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Manage Teams</h2>
+                            
+                            {/* Team Selection */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Select Team</label>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {teams.map(team => (
+                                        <button
+                                            key={team.id}
+                                            onClick={() => setCurrentTeamId(team.id)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                currentTeamId === team.id
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            {team.name}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                {/* Add New Team */}
+                                <div className="flex gap-2 mb-6">
+                                    <input
+                                        type="text"
+                                        value={newTeamName}
+                                        onChange={(e) => setNewTeamName(e.target.value)}
+                                        placeholder="New team name"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        onClick={addTeam}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Current Team Players */}
+                            {currentTeam && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="font-medium text-gray-800">{currentTeam.name} Players</h3>
+                                        <span className="text-sm text-gray-500">{currentTeam.players.length} players</span>
+                                    </div>
+                                    
+                                    {currentTeam.players.length === 0 ? (
+                                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                                            No players added yet
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2 mb-4">
+                                            {sortedAllPlayers.map(player => (
+                                                <div key={player.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                            {player.number}
+                                                        </div>
+                                                        <span className="font-medium text-gray-800">{player.name}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removePlayer(player.id)}
+                                                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Add Player Form */}
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newPlayerName}
+                                            onChange={(e) => setNewPlayerName(e.target.value)}
+                                            placeholder="Player name"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={newPlayerNumber}
+                                            onChange={(e) => setNewPlayerNumber(e.target.value)}
+                                            placeholder="#"
+                                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <button
+                                            onClick={addPlayer}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Select Starting Players Screen */}
+                    {activeScreen === 'selectPlayers' && gameData && (
+                        <div className="p-4">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Select Starting Players</h2>
+                            <p className="text-sm text-gray-600 mb-4">Select exactly 5 players to start the game:</p>
+                            
+                            {/* Team and Setup Info */}
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="font-medium text-blue-800">{currentTeam.name}</h3>
+                                        <p className="text-sm text-blue-700">
+                                            {setupConfig.periods} periods of {setupConfig.periodDuration/60} min each
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* All Players List */}
+                            <div className="space-y-2 mb-6">
+                                {sortedAllPlayers.map(player => {
+                                    const playerInGame = gameData.players.find(p => p.id === player.id);
+                                    const isOnCourt = playerInGame?.onCourt;
+                                    const isFouledOut = player.fouls >= 5;
+                                    
+                                    return (
+                                        <div key={player.id} className={`p-3 border rounded-lg transition-all ${
+                                            isOnCourt ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
+                                        } ${isFouledOut ? 'opacity-50' : ''}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className={`w-8 h-8 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
+                                                        {player.number}
+                                                    </div>
+                                                    <div>
+                                                        <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
+                                                            {player.name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            F: {player.fouls}/5
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button
+                                                    onClick={() => {
+                                                        if (isFouledOut) return;
+                                                        
+                                                        const onCourtCount = gameData.players.filter(p => p.onCourt).length;
+                                                        const willBeOnCourt = !isOnCourt;
+                                                        
+                                                        if (willBeOnCourt && onCourtCount >= 5) {
+                                                            alert('Maximum of 5 players allowed on court!');
+                                                            return;
+                                                        }
+                                                        
+                                                        setGameData(prev => ({
+                                                            ...prev,
+                                                            players: prev.players.map(p => 
+                                                                p.id === player.id 
+                                                                    ? { ...p, onCourt: !isOnCourt }
+                                                                    : p
+                                                            )
+                                                        }));
+                                                    }}
+                                                    disabled={isFouledOut}
+                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                                        isOnCourt
+                                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                            : isFouledOut
+                                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                    }`}
+                                                >
+                                                    {isOnCourt ? 'On Court' : 'Add'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Selected Count */}
+                            <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
+                                <span className="font-medium">
+                                    {gameData.players.filter(p => p.onCourt).length} / 5 players selected
+                                </span>
+                            </div>
+
+                            {/* Confirm Button */}
+                            <button
+                                onClick={confirmStartingPlayers}
+                                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors"
+                            >
+                                Start Game with Selected Players
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Game Tracking Screen */}
+                    {activeScreen === 'game' && gameData && (
+                        <div className="p-4">
+                            {/* Team Header */}
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="font-semibold text-blue-800">{currentTeam.name}</h2>
+                                        <p className="text-sm text-blue-700">
+                                            Period {currentPeriod}/{setupConfig.periods}
+                                        </p>
+                                    </div>
+                                    <div className="text-sm text-blue-700">
+                                        {setupConfig.periodDuration/60} min periods
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Game Timer */}
+                            <div className="text-center mb-6">
+                                <div className="bg-gray-800 text-white rounded-lg p-4 mb-3">
+                                    <div className="text-3xl font-mono">{getPeriodTime()}</div>
+                                    <div className="text-sm text-gray-300 mt-1">Game Clock</div>
+                                </div>
+                                <button
+                                    onClick={toggleGameTimer}
+                                    className={`px-8 py-3 rounded-lg font-medium text-white text-sm transition-all ${
+                                        gameStarted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+                                    }`}
+                                >
+                                    {gameStarted ? 'Pause Game' : 'Start Game'}
+                                </button>
+                            </div>
+
+                            {/* On Court Players */}
+                            <div className="mb-6">
+                                <h3 className="font-medium text-gray-800 mb-3">On Court Players</h3>
+                                <div className="space-y-3">
+                                    {sortedOnCourtPlayers.map(player => {
+                                        const playerInGame = gameData.players.find(p => p.id === player.id);
+                                        const totalTime = getTotalPlayingTime(playerInGame);
+                                        const isFouledOut = playerInGame.fouls >= 5;
+                                        const isCloseToFoulingOut = playerInGame.fouls >= 4;
+                                        
+                                        return (
+                                            <div key={player.id} className={`p-4 border rounded-lg transition-all ${
+                                                isFouledOut ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
+                                            }`}>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div 
+                                                            onClick={() => gameStarted && togglePlayerPlaying(player.id)}
+                                                            className={`cursor-pointer ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        >
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className={`w-10 h-10 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
+                                                                    {player.number}
+                                                                </div>
+                                                                <div>
+                                                                    <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
+                                                                        {player.name}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 timer">
+                                                                        {formatTime(totalTime)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center space-x-2">
+                                                        <button
+                                                            onClick={() => makeSubstitution(player)}
+                                                            disabled={gameStarted}
+                                                            className={`px-2 py-1 text-xs font-medium rounded ${
+                                                                gameStarted 
+                                                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                                                    : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
+                                                            }`}
+                                                        >
+                                                            Sub
+                                                        </button>
+                                                        <div className={`text-sm font-medium px-3 py-1.5 rounded text-center min-w-16 ${
+                                                            isCloseToFoulingOut 
+                                                                ? 'bg-yellow-100 text-yellow-800 animate-pulse' 
+                                                                : 'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                            F: {playerInGame.fouls}/5
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Action buttons */}
+                                                <div className="grid grid-cols-6 gap-1 mb-2">
+                                                    <button
+                                                        onClick={() => updatePlayerScore(player.id, 1)}
+                                                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
+                                                    >
+                                                        +1
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlayerScore(player.id, 2)}
+                                                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
+                                                    >
+                                                        +2
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlayerScore(player.id, 3)}
+                                                        className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
+                                                    >
+                                                        +3
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlayerFouls(player.id, 1)}
+                                                        className="py-2 bg-red-100 text-red-800 rounded text-sm font-medium hover:bg-red-200 transition-colors"
+                                                    >
+                                                        F
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlayerScore(player.id, -1)}
+                                                        className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
+                                                    >
+                                                        -1
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlayerFouls(player.id, -1)}
+                                                        className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
+                                                    >
+                                                        -F
+                                                    </button>
+                                                </div>
+                                                
+                                                {/* Score display */}
+                                                <div className="flex justify-between items-center">
+                                                    <div className={`text-2xl font-bold ${playerInGame.score > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                                                        {playerInGame.score}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        points
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* End Game Button */}
+                            <div className="pt-6 border-t border-gray-200">
+                                <button
+                                    onClick={requestEndGame}
+                                    className="w-full py-3 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition-colors"
+                                >
+                                    End Game
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Substitution Modal */}
+                    {showSubstitution && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-white rounded-lg max-w-md w-full">
+                                <div className="p-4 border-b border-gray-200">
+                                    <h3 className="font-semibold text-gray-800">Make Substitution</h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        Replace {playerToSubstitute?.name} #{playerToSubstitute?.number}
+                                    </p>
+                                </div>
+                                
+                                <div className="p-4 max-h-60 overflow-y-auto">
+                                    <p className="text-sm text-gray-600 mb-3">Select player to enter:</p>
+                                    <div className="space-y-2">
+                                        {sortedBenchPlayers.map(player => {
+                                            const playerInGame = gameData?.players.find(p => p.id === player.id);
+                                            const isFouledOut = playerInGame?.fouls >= 5;
+                                            return (
+                                                <div
+                                                    key={player.id}
+                                                    onClick={() => !isFouledOut && setSelectedSubstitute(player)}
+                                                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                                                        selectedSubstitute?.id === player.id
+                                                            ? 'border-blue-500 bg-blue-50'
+                                                            : 'border-gray-200 hover:border-gray-300'
+                                                    } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className={`w-8 h-8 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
+                                                                {player.number}
+                                                            </div>
+                                                            <div>
+                                                                <div className={`font-medium ${isFouledOut ? 'text-red-800' : 'text-gray-800'}`}>
+                                                                    {player.name}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    F: {playerInGame?.fouls}/5
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {selectedSubstitute?.id === player.id && (
+                                                            <div className="text-blue-600 font-bold">✓</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                
+                                <div className="p-4 border-t border-gray-200 flex space-x-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowSubstitution(false);
+                                            setSelectedSubstitute(null);
+                                            setPlayerToSubstitute(null);
+                                        }}
+                                        className="flex-1 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmSubstitution}
+                                        disabled={!selectedSubstitute}
+                                        className="flex-1 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    >
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* End Game Confirmation Modal */}
+                    {showEndGameConfirm && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-white rounded-lg max-w-md w-full">
+                                <div className="p-4 border-b border-gray-200">
+                                    <h3 className="font-semibold text-gray-800">Confirm End Game</h3>
+                                </div>
+                                
+                                <div className="p-4">
+                                    <p className="text-gray-600 mb-4">
+                                        The game is still running. Are you sure you want to end it now?
+                                    </p>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={confirmEndGame}
+                                            className="w-full py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+                                        >
+                                            Yes, End Game
+                                        </button>
+                                        <button
+                                            onClick={cancelEndGame}
+                                            className="w-full py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                                        >
+                                            Continue Game
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Stats Screen */}
+                    {activeScreen === 'stats' && (
+                        <div className="p-4">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-semibold text-gray-800">Game Statistics</h2>
+                                <button
+                                    onClick={() => setActiveScreen('home')}
+                                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                                >
+                                    Back
+                                </button>
+                            </div>
+
+                            {savedGames.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500">
+                                    <div className="text-6xl mb-4">📊</div>
+                                    <p className="text-lg font-medium">No games tracked yet</p>
+                                    <p className="text-sm">Start tracking games to view statistics</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {savedGames.map((game, index) => (
+                                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div>
+                                                    <h3 className="font-medium text-gray-800">{game.teamName}</h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        {new Date(game.startTime).toLocaleDateString()} • 
+                                                        {game.periods} periods • 
+                                                        {formatTime(game.finalTime)}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedGame(game);
+                                                        setActiveScreen('gameDetails');
+                                                    }}
+                                                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Game Details Screen */}
+                    {activeScreen === 'gameDetails' && selectedGame && (
+                        <div className="p-4">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-semibold text-gray-800">Game Details</h2>
+                                <button
+                                    onClick={() => setActiveScreen('stats')}
+                                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                                >
+                                    Back
+                                </button>
+                            </div>
+
+                            {/* Game Info */}
+                            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <h3 className="font-medium text-blue-800 mb-2">{selectedGame.teamName}</h3>
+                                <div className="space-y-2 text-sm text-blue-700">
+                                    <p>Date: {new Date(selectedGame.startTime).toLocaleDateString()}</p>
+                                    <p>Duration: {formatTime(selectedGame.finalTime)}</p>
+                                    <p>Periods: {selectedGame.periods}</p>
+                                    <p>Period Duration: {selectedGame.periodDuration/60} minutes</p>
+                                </div>
+                            </div>
+
+                            {/* Player List */}
+                            <div className="space-y-3">
+                                {selectedGame.players.map(player => {
+                                    const totalTime = player.timeIntervals.reduce((total, interval) => {
+                                        const end = interval.end || selectedGame.endTime;
+                                        return total + Math.floor((end - interval.start) / 1000);
+                                    }, 0);
+                                    
+                                    return (
+                                        <div key={player.id} className="p-4 border rounded-lg bg-white border-gray-200">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                        {player.number}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium text-gray-800">{player.name}</div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {formatTime(totalTime)} • {player.fouls} fouls
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-lg font-bold text-blue-600">{player.score}</div>
+                                                    <div className="text-xs text-gray-500">points</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedPlayer(player);
+                                                    setActiveScreen('playerTimeline');
+                                                }}
+                                                className="w-full mt-2 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
+                                            >
+                                                View Timeline
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Player Timeline Screen */}
+                    {activeScreen === 'playerTimeline' && selectedPlayer && selectedGame && (
+                        <div className="p-4">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-semibold text-gray-800">Player Timeline</h2>
+                                <button
+                                    onClick={() => setActiveScreen('gameDetails')}
+                                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                                >
+                                    Back
+                                </button>
+                            </div>
+
+                            {/* Player Info */}
+                            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
+                                        {selectedPlayer.number}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-blue-800">{selectedPlayer.name}</h3>
+                                        <div className="text-sm text-blue-700">
+                                            {selectedPlayer.score} points • {selectedPlayer.fouls} fouls
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Timeline for each period */}
+                            {Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(period => {
+                                const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
+                                const periodEnd = period * selectedGame.periodDuration * 1000;
+                                const periodDuration = selectedGame.periodDuration;
+                                
+                                const periodIntervals = selectedPlayer.timeIntervals
+                                    .filter(interval => {
+                                        const start = interval.start - selectedGame.startTime;
+                                        const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
+                                        return start < periodEnd && end > periodStart;
+                                    })
+                                    .map(interval => {
+                                        const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
+                                        const end = interval.end 
+                                            ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
+                                            : periodDuration * 1000;
+                                        return {
+                                            start: start / 1000,
+                                            end: end / 1000
+                                        };
+                                    });
+
+                                return (
+                                    <div key={period} className="mb-6">
+                                        <h3 className="font-medium text-gray-800 mb-3">Period {period}</h3>
+                                        <div className="bg-gray-100 rounded-lg p-4">
+                                            {/* Timeline */}
+                                            <div className="relative h-8 bg-white rounded mb-4">
+                                                {/* Bench time (red) */}
+                                                <div className="absolute top-0 left-0 h-full w-full bg-red-200 rounded"></div>
+                                                
+                                                {/* Playing time (green) */}
+                                                {periodIntervals.map((interval, idx) => {
+                                                    const width = ((interval.end - interval.start) / periodDuration) * 100;
+                                                    const left = (interval.start / periodDuration) * 100;
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className="absolute top-0 bg-green-500 h-full rounded"
+                                                            style={{ left: `${left}%`, width: `${width}%` }}
+                                                        ></div>
+                                                    );
+                                                })}
+                                                
+                                                {/* Period markers */}
+                                                <div className="absolute top-0 left-0 h-full w-0.5 bg-gray-400"></div>
+                                                <div className="absolute top-0 right-0 h-full w-0.5 bg-gray-400"></div>
+                                                
+                                                {/* Time markers */}
+                                                {Array.from({ length: 6 }, (_, i) => i * 2).map(minute => (
+                                                    <div key={minute} className="absolute top-0 h-full w-0.5 bg-gray-300" style={{ left: `${(minute * 60) / periodDuration * 100}%` }}>
+                                                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600">
+                                                            {minute}'
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            
+                                            {/* Events */}
+                                            <div className="text-sm text-gray-600">
+                                                {periodIntervals.length > 0 ? (
+                                                    <p>Played {formatTime(periodIntervals.reduce((total, interval) => total + (interval.end - interval.start), 0))}</p>
+                                                ) : (
+                                                    <p>Did not play</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Setup Screen */}
+                    {activeScreen === 'setup' && (
+                        <div className="p-4">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-6">Setup</h2>
+                            
+                            <div className="space-y-6">
+                                <div className="p-4 border border-gray-200 rounded-lg">
+                                    <h3 className="font-medium text-gray-800 mb-3">Game Configuration</h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Number of Periods
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                value={setupConfig.periods}
+                                                onChange={(e) => setSetupConfig(prev => ({
+                                                    ...prev,
+                                                    periods: parseInt(e.target.value) || 1
+                                                }))}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Default: 4 (basketball), 2 (soccer), 3 (hockey)
+                                            </p>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Duration of Each Period (minutes)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="30"
+                                                value={setupConfig.periodDuration / 60}
+                                                onChange={(e) => setSetupConfig(prev => ({
+                                                    ...prev,
+                                                    periodDuration: (parseInt(e.target.value) || 1) * 60
+                                                }))}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Default: 10 minutes for basketball
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="p-4 border border-gray-200 rounded-lg">
+                                    <h3 className="font-medium text-gray-800 mb-2">Data Management</h3>
+                                    <p className="text-sm text-gray-600 mb-3">All data is saved locally on your device.</p>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('Are you sure you want to reset all data? This cannot be undone!')) {
+                                                setTeams([{ id: 1, name: 'Home Team', players: [] }]);
+                                                setSavedGames([]);
+                                                setCurrentTeamId(1);
+                                                setSetupConfig({
+                                                    periods: 4,
+                                                    periodDuration: 600
+                                                });
+                                                alert('All data has been reset to defaults!');
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+                                    >
+                                        Reset All Data
+                                    </button>
+                                </div>
+                                
+                                <div className="p-4 border border-gray-200 rounded-lg">
+                                    <h3 className="font-medium text-gray-800 mb-2">About</h3>
+                                    <p className="text-sm text-gray-600">
+                                        Basketball Tracker v1.0<br/>
+                                        Track your games, players, and statistics.<br/>
+                                        Configurable for different sports.<br/>
+                                        Data is saved locally on your device.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Game Summary Modal */}
+                    {showGameSummary && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-white rounded-lg max-w-md w-full">
+                                <div className="p-4 border-b border-gray-200">
+                                    <h3 className="font-semibold text-gray-800 text-center">Game Saved!</h3>
+                                </div>
+                                
+                                <div className="p-4">
+                                    <div className="text-center py-6">
+                                        <div className="text-6xl mb-4">✅</div>
+                                        <p className="text-gray-600 mb-4">Your game has been successfully saved.</p>
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => {
+                                                    setShowGameSummary(false);
+                                                    setActiveScreen('home');
+                                                }}
+                                                className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                                            >
+                                                Back to Home
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowGameSummary(false);
+                                                    setActiveScreen('stats');
+                                                }}
+                                                className="w-full py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors mt-2"
+                                            >
+                                                View Statistics
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-              </div>
             );
-          })}
-        </div>
-      )}
+        };
 
-      {/* Setup Screen */}
-      {activeScreen === 'setup' && (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6">Setup</h2>
-          
-          <div className="space-y-6">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-3">Game Configuration</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Periods
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={setupConfig.periods}
-                    onChange={(e) => setSetupConfig(prev => ({
-                      ...prev,
-                      periods: parseInt(e.target.value) || 1
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Default: 4 (basketball), 2 (soccer), 3 (hockey)
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration of Each Period (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={setupConfig.periodDuration / 60}
-                    onChange={(e) => setSetupConfig(prev => ({
-                      ...prev,
-                      periodDuration: (parseInt(e.target.value) || 1) * 60
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Default: 10 minutes for basketball
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-2">Data Management</h3>
-              <p className="text-sm text-gray-600 mb-3">All data is saved locally on your device.</p>
-              <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to reset all data? This cannot be undone!')) {
-                    setTeams([{ id: 1, name: 'Home Team', players: [] }]);
-                    setSavedGames([]);
-                    setCurrentTeamId(1);
-                    setSetupConfig({
-                      periods: 4,
-                      periodDuration: 600
-                    });
-                    alert('All data has been reset to defaults!');
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
-              >
-                Reset All Data
-              </button>
-            </div>
-            
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-2">About</h3>
-              <p className="text-sm text-gray-600">
-                Basketball Tracker v1.0<br/>
-                Track your games, players, and statistics.<br/>
-                Configurable for different sports.<br/>
-                Data is saved locally on your device.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Game Summary Modal */}
-      {showGameSummary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-800 text-center">Game Saved!</h3>
-            </div>
-            
-            <div className="p-4">
-              <div className="text-center py-6">
-                <div className="text-6xl mb-4">✅</div>
-                <p className="text-gray-600 mb-4">Your game has been successfully saved.</p>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      setShowGameSummary(false);
-                      setActiveScreen('home');
-                    }}
-                    className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    Back to Home
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowGameSummary(false);
-                      setActiveScreen('stats');
-                    }}
-                    className="w-full py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors mt-2"
-                  >
-                    View Statistics
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default App;
+        // Render the app
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
