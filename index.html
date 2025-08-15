@@ -51,28 +51,52 @@
             transform: translateX(-50%);
             font-size: 10px;
             font-weight: bold;
-            color: #1f2937;
-            background: #e5e7eb;
+            color: white;
             padding: 1px 3px;
             border-radius: 3px;
-            border: 1px solid #9ca3af;
+            border: 1px solid #374151;
         }
         .score-marker-1 {
             background: #c2410c;
-            color: white;
         }
         .score-marker-2 {
             background: #166534;
-            color: white;
         }
         .score-marker-3 {
             background: #7c2d12;
-            color: white;
         }
-        .team-score {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #1e40af;
+        .foul-marker {
+            background: #dc2626;
+        }
+        .timeline-container {
+            position: relative;
+            height: 8px;
+            background: #f87171; /* rose-400 for bench time */
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .playing-time {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: #22c55e; /* green-500 for playing time */
+            border-radius: 4px;
+        }
+        .score-line {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: #3b82f6; /* blue-500 for score line */
+        }
+        .event-dot {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3b82f6; /* blue-500 */
         }
     </style>
 </head>
@@ -175,7 +199,8 @@
                                         fouls: 0,
                                         timeOnCourt: 0,
                                         timeIntervals: [],
-                                        scoreEvents: []
+                                        scoreEvents: [],
+                                        foulEvents: []
                                     }
                                 ]
                             };
@@ -228,6 +253,7 @@
                     playing: false,
                     timeIntervals: [],
                     scoreEvents: p.scoreEvents || [],
+                    foulEvents: p.foulEvents || [],
                     lastTimeUpdate: null
                 }));
                 
@@ -381,7 +407,7 @@
                                     score: Math.max(0, player.score + points)
                                 };
                                 
-                                // Ensure scoreEvents array exists
+                                // Ensure arrays exist
                                 if (!updatedPlayer.scoreEvents) {
                                     updatedPlayer.scoreEvents = [];
                                 }
@@ -422,10 +448,37 @@
                         players: prev.players.map(function(player) {
                             if (player.id === playerId) {
                                 const newFouls = Math.max(0, Math.min(6, player.fouls + change));
-                                return {
+                                
+                                const updatedPlayer = {
                                     ...player,
                                     fouls: newFouls
                                 };
+                                
+                                // Ensure arrays exist
+                                if (!updatedPlayer.foulEvents) {
+                                    updatedPlayer.foulEvents = [];
+                                }
+                                
+                                // Record foul event
+                                if (change !== 0) {
+                                    const now = Date.now();
+                                    const gameTime = now - prev.startTime;
+                                    const period = Math.floor(gameTime / prev.periodDuration) + 1;
+                                    const periodTime = (gameTime % prev.periodDuration) / 1000;
+                                    
+                                    updatedPlayer.foulEvents = [
+                                        ...updatedPlayer.foulEvents,
+                                        {
+                                            change: change,
+                                            timestamp: now,
+                                            gameTime: gameTime,
+                                            period: period,
+                                            periodTime: periodTime
+                                        }
+                                    ];
+                                }
+                                
+                                return updatedPlayer;
                             }
                             return player;
                         })
@@ -565,13 +618,13 @@
 
             const formatTime = function(seconds) {
                 const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
+                const secs = Math.floor(seconds % 60);
                 return mins + 'm ' + secs.toString().padStart(2, '0') + 's';
             };
 
             const formatTimeSimple = function(seconds) {
                 const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
+                const secs = Math.floor(seconds % 60);
                 return mins + ':' + secs.toString().padStart(2, '0');
             };
 
@@ -1308,6 +1361,7 @@
                                 const periodEnd = period * selectedGame.periodDuration * 1000;
                                 const periodDuration = selectedGame.periodDuration;
                                 
+                                // Get playing time intervals for this period
                                 const periodIntervals = (selectedPlayer.timeIntervals || []).filter(function(interval) {
                                     const start = interval.start - selectedGame.startTime;
                                     const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
@@ -1325,11 +1379,22 @@
 
                                 // Get score events for this period
                                 const periodScoreEvents = (selectedPlayer.scoreEvents || []).filter(function(event) {
-                                    return event && event.period === period;
+                                    return event && event.period === period && event.points !== 0;
                                 }).map(function(event) {
                                     const position = (event.periodTime / periodDuration) * 100;
                                     return {
                                         points: event.points,
+                                        position: position
+                                    };
+                                });
+
+                                // Get foul events for this period
+                                const periodFoulEvents = (selectedPlayer.foulEvents || []).filter(function(event) {
+                                    return event && event.period === period;
+                                }).map(function(event) {
+                                    const position = (event.periodTime / periodDuration) * 100;
+                                    return {
+                                        change: event.change,
                                         position: position
                                     };
                                 });
@@ -1339,32 +1404,52 @@
                                         <h3 className="font-medium text-gray-800 mb-3">Period {period}</h3>
                                         <div className="bg-gray-100 rounded-lg p-4">
                                             {/* Timeline */}
-                                            <div className="relative h-8 bg-white rounded mb-4">
-                                                {/* Bench time (red) */}
-                                                <div className="absolute top-0 left-0 h-full w-full bg-red-200 rounded"></div>
-                                                
-                                                {/* Playing time (green) */}
+                                            <div className="timeline-container mb-4">
+                                                {/* Playing time segments */}
                                                 {periodIntervals.map(function(interval, idx) {
                                                     const width = ((interval.end - interval.start) / periodDuration) * 100;
                                                     const left = (interval.start / periodDuration) * 100;
                                                     return (
                                                         <div
                                                             key={idx}
-                                                            className="absolute top-0 bg-green-500 h-full rounded"
+                                                            className="playing-time"
                                                             style={{ left: `${left}%`, width: `${width}%` }}
                                                         ></div>
                                                     );
                                                 })}
                                                 
-                                                {/* Score markers */}
+                                                {/* Score events */}
                                                 {periodScoreEvents.map(function(event, idx) {
                                                     return (
-                                                        <div
-                                                            key={idx}
-                                                            className={`score-marker score-marker-${event.points}`}
-                                                            style={{ left: `${event.position}%` }}
-                                                        >
-                                                            {event.points}
+                                                        <div key={`score-${idx}`}>
+                                                            <div
+                                                                className="score-line"
+                                                                style={{ left: `${event.position}%` }}
+                                                            ></div>
+                                                            <div
+                                                                className={`score-marker score-marker-${event.points}`}
+                                                                style={{ left: `${event.position}%` }}
+                                                            >
+                                                                {event.points}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                                
+                                                {/* Foul events */}
+                                                {periodFoulEvents.map(function(event, idx) {
+                                                    return (
+                                                        <div key={`foul-${idx}`}>
+                                                            <div
+                                                                className="score-line"
+                                                                style={{ left: `${event.position}%` }}
+                                                            ></div>
+                                                            <div
+                                                                className="score-marker foul-marker"
+                                                                style={{ left: `${event.position}%` }}
+                                                            >
+                                                                F
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -1485,7 +1570,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v0.8<br/>
+                                        Basketball Tracker v0.9<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
