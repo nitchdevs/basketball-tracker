@@ -98,6 +98,40 @@
             border-radius: 50%;
             background: #3b82f6; /* blue-500 */
         }
+        .export-content {
+            font-family: 'Inter', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .export-header {
+            text-align: center;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .export-game-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .export-player-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .export-player-row:last-child {
+            border-bottom: none;
+        }
+        .export-total {
+            font-weight: bold;
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -129,6 +163,8 @@
             const [playerToSubstitute, setPlayerToSubstitute] = React.useState(null);
             const [showEndGameConfirm, setShowEndGameConfirm] = React.useState(false);
             const [selectedPlayer, setSelectedPlayer] = React.useState(null);
+            const [showExportModal, setShowExportModal] = React.useState(false);
+            const [exportContent, setExportContent] = React.useState('');
             
             // Stats state
             const [savedGames, setSavedGames] = React.useState(function() {
@@ -628,11 +664,27 @@
                 return mins + ':' + secs.toString().padStart(2, '0');
             };
 
-            const getTotalPlayingTime = function(player) {
-                return player.timeIntervals.reduce(function(total, interval) {
-                    const end = interval.end || Date.now();
-                    return total + Math.floor((end - interval.start) / 1000);
-                }, player.timeOnCourt || 0);
+            const calculatePlayingTime = function(player, gameStartTime, gameEndTime) {
+                if (!player.timeIntervals || player.timeIntervals.length === 0) {
+                    return 0;
+                }
+                
+                let totalSeconds = 0;
+                
+                player.timeIntervals.forEach(function(interval) {
+                    const start = Math.max(interval.start, gameStartTime);
+                    const end = interval.end ? Math.min(interval.end, gameEndTime) : gameEndTime;
+                    
+                    if (start < end) {
+                        totalSeconds += Math.floor((end - start) / 1000);
+                    }
+                });
+                
+                return totalSeconds;
+            };
+
+            const getTotalPlayingTime = function(player, gameStartTime, gameEndTime) {
+                return calculatePlayingTime(player, gameStartTime, gameEndTime);
             };
 
             const getPeriodTime = function() {
@@ -671,6 +723,94 @@
                 } else if (activeScreen === 'setup' || activeScreen === 'manageTeam' || activeScreen === 'stats') {
                     setActiveScreen('home');
                 }
+            };
+
+            // Delete game
+            const deleteGame = function() {
+                if (selectedGame && window.confirm('Are you sure you want to delete this game?')) {
+                    const gameIndex = savedGames.indexOf(selectedGame);
+                    const newGames = [...savedGames];
+                    newGames.splice(gameIndex, 1);
+                    setSavedGames(newGames);
+                    setSelectedGame(null);
+                    setActiveScreen('stats');
+                }
+            };
+
+            // Export game
+            const exportGame = function() {
+                if (!selectedGame) return;
+                
+                // Calculate total team score
+                const totalScore = selectedGame.players.reduce(function(total, player) {
+                    return total + (player.score || 0);
+                }, 0);
+                
+                // Create export content
+                const exportHtml = `
+                    <div class="export-content">
+                        <div class="export-header">
+                            <h1 style="font-size: 24px; margin: 0;">${selectedGame.teamName} Game Report</h1>
+                            <p style="margin: 5px 0; color: #6b7280;">${new Date(selectedGame.startTime).toLocaleDateString()} • ${formatTimeSimple(selectedGame.finalTime)}</p>
+                        </div>
+                        
+                        <div class="export-game-info">
+                            <h2 style="margin: 0 0 10px 0; font-size: 18px;">Game Details</h2>
+                            <p><strong>Date:</strong> ${new Date(selectedGame.startTime).toLocaleDateString()}</p>
+                            <p><strong>Duration:</strong> ${formatTimeSimple(selectedGame.finalTime)}</p>
+                            <p><strong>Periods:</strong> ${selectedGame.periods}</p>
+                            <p><strong>Period Duration:</strong> ${selectedGame.periodDuration/60} minutes</p>
+                            <p><strong>Total Score:</strong> ${totalScore} points</p>
+                        </div>
+                        
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;">Player Statistics</h2>
+                        <div style="border: 1px solid #e5e7eb; border-radius: 8px;">
+                            ${selectedGame.players.map(function(player) {
+                                const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
+                                return `
+                                    <div class="export-player-row">
+                                        <div style="display: flex; align-items: center;">
+                                            <div style="width: 24px; height: 24px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 10px;">
+                                                ${player.number}
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: bold;">${player.name}</div>
+                                                <div style="font-size: 12px; color: #6b7280;">#${player.number}</div>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div>${formatTime(totalTime)}</div>
+                                            <div style="font-size: 12px;">${player.score} pts • ${player.fouls} fouls</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="export-total">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div><strong>Total Score:</strong></div>
+                                <div><strong>${totalScore} points</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                setExportContent(exportHtml);
+                setShowExportModal(true);
+            };
+
+            // Share via email
+            const shareViaEmail = function() {
+                const subject = encodeURIComponent('Basketball Game Report');
+                const body = encodeURIComponent('Please find the attached game report.\n\n' + exportContent);
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            };
+
+            // Share via WhatsApp
+            const shareViaWhatsApp = function() {
+                const text = encodeURIComponent('Basketball Game Report\n\n' + exportContent);
+                window.open(`https://wa.me/?text=${text}`, '_blank');
             };
 
             return (
@@ -983,7 +1123,7 @@
                                 <div className="space-y-3">
                                     {sortedOnCourtPlayers.map(function(player) {
                                         const playerInGame = gameData.players.find(function(p) { return p.id === player.id; });
-                                        const totalTime = getTotalPlayingTime(playerInGame);
+                                        const totalTime = getTotalPlayingTime(playerInGame, gameData.startTime, Date.now());
                                         const isFouledOut = playerInGame.fouls >= 5;
                                         const isCloseToFoulingOut = playerInGame.fouls >= 4;
                                         
@@ -1286,10 +1426,7 @@
                             <div className="space-y-3">
                                 {selectedGame.players.map(function(player) {
                                     const playerInGame = selectedGame.players.find(function(p) { return p.id === player.id; });
-                                    const totalTime = playerInGame.timeIntervals.reduce(function(total, interval) {
-                                        const end = interval.end || selectedGame.endTime;
-                                        return total + Math.floor((end - interval.start) / 1000);
-                                    }, playerInGame.timeOnCourt || 0);
+                                    const totalTime = calculatePlayingTime(playerInGame, selectedGame.startTime, selectedGame.endTime || Date.now());
                                     
                                     return (
                                         <div key={player.id} className="p-4 border rounded-lg bg-white border-gray-200">
@@ -1323,6 +1460,24 @@
                                         </div>
                                     );
                                 })}
+                            </div>
+
+                            {/* Game Actions */}
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={deleteGame}
+                                        className="flex-1 py-3 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                                    >
+                                        Delete Game
+                                    </button>
+                                    <button
+                                        onClick={exportGame}
+                                        className="flex-1 py-3 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                                    >
+                                        Export Report
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1570,7 +1725,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v0.9<br/>
+                                        Basketball Tracker v0.93<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
@@ -1613,6 +1768,41 @@
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Export Modal */}
+                    {showExportModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-white rounded-lg max-w-lg w-full max-h-90vh overflow-y-auto">
+                                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                                    <h3 className="font-semibold text-gray-800">Export Game Report</h3>
+                                    <button
+                                        onClick={function() { setShowExportModal(false); }}
+                                        className="text-gray-500 hover:text-gray-700"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                
+                                <div className="p-4" dangerouslySetInnerHTML={{__html: exportContent}}>
+                                </div>
+                                
+                                <div className="p-4 border-t border-gray-200 flex space-x-3">
+                                    <button
+                                        onClick={shareViaEmail}
+                                        className="flex-1 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                    >
+                                        Share via Email
+                                    </button>
+                                    <button
+                                        onClick={shareViaWhatsApp}
+                                        className="flex-1 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                                    >
+                                        Share via WhatsApp
+                                    </button>
                                 </div>
                             </div>
                         </div>
