@@ -69,6 +69,11 @@
             background: #7c2d12;
             color: white;
         }
+        .team-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -134,6 +139,14 @@
             const currentTeam = teams.find(t => t.id === currentTeamId) || teams[0];
             const onCourtPlayers = gameData ? gameData.players.filter(p => p.onCourt) : [];
             const benchPlayers = gameData ? gameData.players.filter(p => !p.onCourt) : [];
+
+            // Calculate total team score
+            const getTotalTeamScore = function() {
+                if (!gameData || !gameData.players) return 0;
+                return gameData.players.reduce(function(total, player) {
+                    return total + (player.score || 0);
+                }, 0);
+            };
 
             const addPlayer = function() {
                 if (newPlayerName.trim() && newPlayerNumber.trim()) {
@@ -885,12 +898,12 @@
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="font-semibold text-blue-800">{currentTeam.name}</h2>
-                                        <p className="text-sm text-blue-700">
-                                            Period {currentPeriod}/{setupConfig.periods}
-                                        </p>
+                                        <div className="team-score">
+                                            {getTotalTeamScore()} points
+                                        </div>
                                     </div>
                                     <div className="text-sm text-blue-700">
-                                        {setupConfig.periodDuration/60} min periods
+                                        Period {currentPeriod}/{setupConfig.periods}
                                     </div>
                                 </div>
                             </div>
@@ -1472,7 +1485,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v1.0<br/>
+                                        Basketball Tracker v0.8<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
