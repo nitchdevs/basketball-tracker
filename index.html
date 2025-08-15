@@ -39,6 +39,36 @@
         .timer {
             font-variant-numeric: tabular-nums;
         }
+        .back-btn {
+            transition: all 0.2s ease;
+        }
+        .back-btn:hover {
+            background-color: #1d4ed8 !important;
+        }
+        .score-marker {
+            position: absolute;
+            top: -20px;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: #1f2937;
+            background: #e5e7eb;
+            padding: 1px 3px;
+            border-radius: 3px;
+            border: 1px solid #9ca3af;
+        }
+        .score-marker-1 {
+            background: #c2410c;
+            color: white;
+        }
+        .score-marker-2 {
+            background: #166534;
+            color: white;
+        }
+        .score-marker-3 {
+            background: #7c2d12;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -47,7 +77,7 @@
     <script type="text/babel">
         const App = () => {
             const [activeScreen, setActiveScreen] = React.useState('home');
-            const [teams, setTeams] = React.useState(() => {
+            const [teams, setTeams] = React.useState(function() {
                 const saved = localStorage.getItem('basketball-teams');
                 return saved ? JSON.parse(saved) : [
                     { id: 1, name: 'Home Team', players: [] }
@@ -72,14 +102,14 @@
             const [selectedPlayer, setSelectedPlayer] = React.useState(null);
             
             // Stats state
-            const [savedGames, setSavedGames] = React.useState(() => {
+            const [savedGames, setSavedGames] = React.useState(function() {
                 const saved = localStorage.getItem('basketball-games');
                 return saved ? JSON.parse(saved) : [];
             });
             const [selectedGame, setSelectedGame] = React.useState(null);
 
             // Setup configuration
-            const [setupConfig, setSetupConfig] = React.useState(() => {
+            const [setupConfig, setSetupConfig] = React.useState(function() {
                 const saved = localStorage.getItem('basketball-setup');
                 const defaultConfig = {
                     periods: 4,
@@ -89,30 +119,30 @@
             });
 
             // Save to localStorage
-            React.useEffect(() => {
+            React.useEffect(function() {
                 localStorage.setItem('basketball-teams', JSON.stringify(teams));
             }, [teams]);
 
-            React.useEffect(() => {
+            React.useEffect(function() {
                 localStorage.setItem('basketball-games', JSON.stringify(savedGames));
             }, [savedGames]);
 
-            React.useEffect(() => {
+            React.useEffect(function() {
                 localStorage.setItem('basketball-setup', JSON.stringify(setupConfig));
             }, [setupConfig]);
 
             const currentTeam = teams.find(t => t.id === currentTeamId) || teams[0];
-            const onCourtPlayers = gameData?.players.filter(p => p.onCourt) || [];
-            const benchPlayers = gameData?.players.filter(p => !p.onCourt) || [];
+            const onCourtPlayers = gameData ? gameData.players.filter(p => p.onCourt) : [];
+            const benchPlayers = gameData ? gameData.players.filter(p => !p.onCourt) : [];
 
-            const addPlayer = () => {
+            const addPlayer = function() {
                 if (newPlayerName.trim() && newPlayerNumber.trim()) {
                     const numberExists = currentTeam.players.some(player => 
                         player.number === newPlayerNumber.trim()
                     );
                     
                     if (numberExists) {
-                        alert(`Player number ${newPlayerNumber.trim()} is already in use!`);
+                        alert('Player number ' + newPlayerNumber.trim() + ' is already in use!');
                         return;
                     }
                     
@@ -131,7 +161,8 @@
                                         score: 0,
                                         fouls: 0,
                                         timeOnCourt: 0,
-                                        timeIntervals: []
+                                        timeIntervals: [],
+                                        scoreEvents: []
                                     }
                                 ]
                             };
@@ -144,7 +175,7 @@
                 }
             };
 
-            const removePlayer = (playerId) => {
+            const removePlayer = function(playerId) {
                 const updatedTeams = teams.map(team => {
                     if (team.id === currentTeamId) {
                         return {
@@ -157,20 +188,22 @@
                 setTeams(updatedTeams);
             };
 
-            const addTeam = () => {
+            const addTeam = function() {
                 if (newTeamName.trim()) {
                     const newTeam = {
                         id: Date.now(),
                         name: newTeamName.trim(),
                         players: []
                     };
-                    setTeams([...teams, newTeam]);
+                    setTeams(function(prev) {
+                        return [...prev, newTeam];
+                    });
                     setCurrentTeamId(newTeam.id);
                     setNewTeamName('');
                 }
             };
 
-            const selectStartingPlayers = () => {
+            const selectStartingPlayers = function() {
                 if (currentTeam.players.length < 5) {
                     alert('You need at least 5 players to start a game!');
                     return;
@@ -181,6 +214,7 @@
                     onCourt: false,
                     playing: false,
                     timeIntervals: [],
+                    scoreEvents: p.scoreEvents || [],
                     lastTimeUpdate: null
                 }));
                 
@@ -197,7 +231,7 @@
                 setActiveScreen('selectPlayers');
             };
 
-            const confirmStartingPlayers = () => {
+            const confirmStartingPlayers = function() {
                 const onCourtCount = gameData.players.filter(p => p.onCourt).length;
                 
                 if (onCourtCount !== 5) {
@@ -211,61 +245,63 @@
                 setActiveScreen('game');
             };
 
-            const togglePlayerOnCourt = (outPlayerId, inPlayerId) => {
+            const togglePlayerOnCourt = function(outPlayerId, inPlayerId) {
                 if (!gameData) return;
                 
-                setGameData(prev => ({
-                    ...prev,
-                    players: prev.players.map(player => {
-                        if (player.id === outPlayerId) {
-                            const now = Date.now();
-                            const updatedPlayer = {
-                                ...player,
-                                onCourt: false,
-                                playing: false,
-                                lastTimeUpdate: now
-                            };
-                            
-                            if (player.playing && player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-                                    idx === player.timeIntervals.length - 1 
-                                        ? { ...interval, end: now } 
-                                        : interval
-                                );
+                setGameData(function(prev) {
+                    return {
+                        ...prev,
+                        players: prev.players.map(function(player) {
+                            if (player.id === outPlayerId) {
+                                const now = Date.now();
+                                const updatedPlayer = {
+                                    ...player,
+                                    onCourt: false,
+                                    playing: false,
+                                    lastTimeUpdate: now
+                                };
+                                
+                                if (player.playing && player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                    updatedPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
+                                        return idx === player.timeIntervals.length - 1 
+                                            ? { ...interval, end: now } 
+                                            : interval;
+                                    });
+                                }
+                                
+                                return updatedPlayer;
                             }
                             
-                            return updatedPlayer;
-                        }
-                        
-                        if (player.id === inPlayerId) {
-                            const now = Date.now();
-                            const updatedPlayer = {
-                                ...player,
-                                onCourt: true,
-                                playing: gameStarted,
-                                lastTimeUpdate: now
-                            };
-                            
-                            if (gameStarted) {
-                                updatedPlayer.timeIntervals = [
-                                    ...player.timeIntervals,
-                                    { start: now, end: null }
-                                ];
+                            if (player.id === inPlayerId) {
+                                const now = Date.now();
+                                const updatedPlayer = {
+                                    ...player,
+                                    onCourt: true,
+                                    playing: gameStarted,
+                                    lastTimeUpdate: now
+                                };
+                                
+                                if (gameStarted) {
+                                    updatedPlayer.timeIntervals = [
+                                        ...player.timeIntervals,
+                                        { start: now, end: null }
+                                    ];
+                                }
+                                
+                                return updatedPlayer;
                             }
                             
-                            return updatedPlayer;
-                        }
-                        
-                        return player;
-                    })
-                }));
+                            return player;
+                        })
+                    };
+                });
                 
                 setShowSubstitution(false);
                 setSelectedSubstitute(null);
                 setPlayerToSubstitute(null);
             };
 
-            const makeSubstitution = (outPlayer) => {
+            const makeSubstitution = function(outPlayer) {
                 if (gameStarted) {
                     alert('Substitutions can only be made when the game is stopped!');
                     return;
@@ -275,109 +311,145 @@
                 setShowSubstitution(true);
             };
 
-            const confirmSubstitution = () => {
+            const confirmSubstitution = function() {
                 if (selectedSubstitute && playerToSubstitute) {
                     togglePlayerOnCourt(playerToSubstitute.id, selectedSubstitute.id);
                 }
             };
 
-            const togglePlayerPlaying = (playerId) => {
+            const togglePlayerPlaying = function(playerId) {
                 if (!gameData || !gameStarted) return;
                 
-                setGameData(prev => ({
-                    ...prev,
-                    players: prev.players.map(player => {
-                        if (player.id === playerId && player.onCourt) {
-                            const now = Date.now();
-                            const updatedPlayer = {
-                                ...player,
-                                playing: !player.playing,
-                                lastTimeUpdate: now
-                            };
-                            
-                            if (player.playing) {
-                                if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                    updatedPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-                                        idx === player.timeIntervals.length - 1 
-                                            ? { ...interval, end: now } 
-                                            : interval
-                                    );
+                setGameData(function(prev) {
+                    return {
+                        ...prev,
+                        players: prev.players.map(function(player) {
+                            if (player.id === playerId && player.onCourt) {
+                                const now = Date.now();
+                                const updatedPlayer = {
+                                    ...player,
+                                    playing: !player.playing,
+                                    lastTimeUpdate: now
+                                };
+                                
+                                if (player.playing) {
+                                    if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                        updatedPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
+                                            return idx === player.timeIntervals.length - 1 
+                                                ? { ...interval, end: now } 
+                                                : interval;
+                                        });
+                                    }
+                                } else {
+                                    updatedPlayer.timeIntervals = [
+                                        ...player.timeIntervals,
+                                        { start: now, end: null }
+                                    ];
                                 }
-                            } else {
-                                updatedPlayer.timeIntervals = [
-                                    ...player.timeIntervals,
-                                    { start: now, end: null }
-                                ];
+                                
+                                return updatedPlayer;
                             }
-                            
-                            return updatedPlayer;
-                        }
-                        return player;
-                    })
-                }));
+                            return player;
+                        })
+                    };
+                });
             };
 
-            const updatePlayerScore = (playerId, points) => {
+            const updatePlayerScore = function(playerId, points) {
                 if (!gameData) return;
                 
-                setGameData(prev => ({
-                    ...prev,
-                    players: prev.players.map(player => {
-                        if (player.id === playerId) {
-                            return {
-                                ...player,
-                                score: Math.max(0, player.score + points)
-                            };
-                        }
-                        return player;
-                    })
-                }));
+                setGameData(function(prev) {
+                    return {
+                        ...prev,
+                        players: prev.players.map(function(player) {
+                            if (player.id === playerId) {
+                                const updatedPlayer = {
+                                    ...player,
+                                    score: Math.max(0, player.score + points)
+                                };
+                                
+                                // Ensure scoreEvents array exists
+                                if (!updatedPlayer.scoreEvents) {
+                                    updatedPlayer.scoreEvents = [];
+                                }
+                                
+                                // Record score event
+                                if (points !== 0) {
+                                    const now = Date.now();
+                                    const gameTime = now - prev.startTime;
+                                    const period = Math.floor(gameTime / prev.periodDuration) + 1;
+                                    const periodTime = (gameTime % prev.periodDuration) / 1000;
+                                    
+                                    updatedPlayer.scoreEvents = [
+                                        ...updatedPlayer.scoreEvents,
+                                        {
+                                            points: points,
+                                            timestamp: now,
+                                            gameTime: gameTime,
+                                            period: period,
+                                            periodTime: periodTime
+                                        }
+                                    ];
+                                }
+                                
+                                return updatedPlayer;
+                            }
+                            return player;
+                        })
+                    };
+                });
             };
 
-            const updatePlayerFouls = (playerId, change) => {
+            const updatePlayerFouls = function(playerId, change) {
                 if (!gameData) return;
                 
-                setGameData(prev => ({
-                    ...prev,
-                    players: prev.players.map(player => {
-                        if (player.id === playerId) {
-                            const newFouls = Math.max(0, Math.min(6, player.fouls + change));
-                            return {
-                                ...player,
-                                fouls: newFouls
-                            };
-                        }
-                        return player;
-                    })
-                }));
+                setGameData(function(prev) {
+                    return {
+                        ...prev,
+                        players: prev.players.map(function(player) {
+                            if (player.id === playerId) {
+                                const newFouls = Math.max(0, Math.min(6, player.fouls + change));
+                                return {
+                                    ...player,
+                                    fouls: newFouls
+                                };
+                            }
+                            return player;
+                        })
+                    };
+                });
             };
 
             // Game timer effect
-            React.useEffect(() => {
+            React.useEffect(function() {
                 if (gameStarted && gameData && activeScreen === 'game') {
-                    const timer = setInterval(() => {
-                        setGameTime(prevTime => {
+                    const timer = setInterval(function() {
+                        setGameTime(function(prevTime) {
                             const newTime = prevTime + 1;
-                            setGameData(prev => ({
-                                ...prev,
-                                players: prev.players.map(player => {
-                                    if (player.onCourt && player.playing && player.lastTimeUpdate) {
-                                        const timeDiff = Math.floor((Date.now() - player.lastTimeUpdate) / 1000);
-                                        return {
-                                            ...player,
-                                            timeOnCourt: player.timeOnCourt + timeDiff,
-                                            lastTimeUpdate: Date.now()
-                                        };
-                                    }
-                                    return player;
-                                })
-                            }));
+                            setGameData(function(prev) {
+                                return {
+                                    ...prev,
+                                    players: prev.players.map(function(player) {
+                                        if (player.onCourt && player.playing && player.lastTimeUpdate) {
+                                            const timeDiff = Math.floor((Date.now() - player.lastTimeUpdate) / 1000);
+                                            return {
+                                                ...player,
+                                                timeOnCourt: player.timeOnCourt + timeDiff,
+                                                lastTimeUpdate: Date.now()
+                                            };
+                                        }
+                                        return player;
+                                    })
+                                };
+                            });
                             return newTime;
                         });
                     }, 1000);
                     
                     setGameTimer(timer);
-                    return () => clearInterval(timer);
+                    return function() {
+                        clearInterval(timer);
+                    };
                 } else {
                     if (gameTimer) {
                         clearInterval(gameTimer);
@@ -386,46 +458,48 @@
                 }
             }, [gameStarted, gameData, activeScreen]);
 
-            const toggleGameTimer = () => {
+            const toggleGameTimer = function() {
                 setGameStarted(!gameStarted);
                 
                 if (gameData) {
-                    setGameData(prev => ({
-                        ...prev,
-                        players: prev.players.map(player => {
-                            if (player.onCourt && !gameStarted) {
-                                const now = Date.now();
-                                return {
-                                    ...player,
-                                    playing: true,
-                                    lastTimeUpdate: now,
-                                    timeIntervals: [
-                                        ...player.timeIntervals,
-                                        { start: now, end: null }
-                                    ]
-                                };
-                            } else if (player.onCourt && gameStarted) {
-                                const now = Date.now();
-                                if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                    setGameData(function(prev) {
+                        return {
+                            ...prev,
+                            players: prev.players.map(function(player) {
+                                if (player.onCourt && !gameStarted) {
+                                    const now = Date.now();
                                     return {
                                         ...player,
-                                        playing: false,
+                                        playing: true,
                                         lastTimeUpdate: now,
-                                        timeIntervals: player.timeIntervals.map((interval, idx) => 
-                                            idx === player.timeIntervals.length - 1 
-                                                ? { ...interval, end: now } 
-                                                : interval
-                                        )
+                                        timeIntervals: [
+                                            ...player.timeIntervals,
+                                            { start: now, end: null }
+                                        ]
                                     };
+                                } else if (player.onCourt && gameStarted) {
+                                    const now = Date.now();
+                                    if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
+                                        return {
+                                            ...player,
+                                            playing: false,
+                                            lastTimeUpdate: now,
+                                            timeIntervals: player.timeIntervals.map(function(interval, idx) {
+                                                return idx === player.timeIntervals.length - 1 
+                                                    ? { ...interval, end: now } 
+                                                    : interval;
+                                            })
+                                        };
+                                    }
                                 }
-                            }
-                            return player;
-                        })
-                    }));
+                                return player;
+                            })
+                        };
+                    });
                 }
             };
 
-            const requestEndGame = () => {
+            const requestEndGame = function() {
                 if (gameStarted) {
                     setShowEndGameConfirm(true);
                 } else {
@@ -433,37 +507,39 @@
                 }
             };
 
-            const confirmEndGame = () => {
+            const confirmEndGame = function() {
                 setShowEndGameConfirm(false);
                 endGame();
             };
 
-            const cancelEndGame = () => {
+            const cancelEndGame = function() {
                 setShowEndGameConfirm(false);
             };
 
-            const endGame = () => {
+            const endGame = function() {
                 if (gameData) {
                     const endTime = Date.now();
                     const finalGameData = {
                         ...gameData,
-                        endTime,
+                        endTime: endTime,
                         finalTime: gameTime,
                         period: currentPeriod,
-                        players: gameData.players.map(player => {
+                        players: gameData.players.map(function(player) {
                             let finalPlayer = { ...player };
                             if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                finalPlayer.timeIntervals = player.timeIntervals.map((interval, idx) => 
-                                    idx === player.timeIntervals.length - 1 
+                                finalPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
+                                    return idx === player.timeIntervals.length - 1 
                                         ? { ...interval, end: endTime } 
-                                        : interval
-                                );
+                                        : interval;
+                                });
                             }
                             return finalPlayer;
                         })
                     };
                     
-                    setSavedGames(prev => [finalGameData, ...prev]);
+                    setSavedGames(function(prev) {
+                        return [finalGameData, ...prev];
+                    });
                     
                     setGameData(null);
                     setGameTime(0);
@@ -474,28 +550,62 @@
                 }
             };
 
-            const formatTime = (seconds) => {
+            const formatTime = function(seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = seconds % 60;
-                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                return mins + 'm ' + secs.toString().padStart(2, '0') + 's';
             };
 
-            const getTotalPlayingTime = (player) => {
-                return player.timeIntervals.reduce((total, interval) => {
+            const formatTimeSimple = function(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return mins + ':' + secs.toString().padStart(2, '0');
+            };
+
+            const getTotalPlayingTime = function(player) {
+                return player.timeIntervals.reduce(function(total, interval) {
                     const end = interval.end || Date.now();
                     return total + Math.floor((end - interval.start) / 1000);
-                }, player.timeOnCourt);
+                }, player.timeOnCourt || 0);
             };
 
-            const getPeriodTime = () => {
+            const getPeriodTime = function() {
                 const remaining = setupConfig.periodDuration - (gameTime % setupConfig.periodDuration);
-                return formatTime(remaining);
+                return formatTimeSimple(remaining);
             };
 
             // Sort players by number
-            const sortedOnCourtPlayers = [...onCourtPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
-            const sortedAllPlayers = [...currentTeam.players].sort((a, b) => parseInt(a.number) - parseInt(b.number));
-            const sortedBenchPlayers = [...benchPlayers].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            const sortedOnCourtPlayers = [...onCourtPlayers].sort(function(a, b) {
+                return parseInt(a.number) - parseInt(b.number);
+            });
+            const sortedAllPlayers = [...currentTeam.players].sort(function(a, b) {
+                return parseInt(a.number) - parseInt(b.number);
+            });
+            const sortedBenchPlayers = [...benchPlayers].sort(function(a, b) {
+                return parseInt(a.number) - parseInt(b.number);
+            });
+
+            // Show back button on all screens except home
+            const showBackButton = activeScreen !== 'home';
+
+            // Custom back function for different screens
+            const handleBack = function() {
+                if (activeScreen === 'game') {
+                    // Don't allow back during active game
+                    return;
+                } else if (activeScreen === 'selectPlayers') {
+                    if (window.confirm('Are you sure you want to go back? Your selections will be lost.')) {
+                        setActiveScreen('home');
+                        setGameData(null);
+                    }
+                } else if (activeScreen === 'gameDetails') {
+                    setActiveScreen('stats');
+                } else if (activeScreen === 'playerTimeline') {
+                    setActiveScreen('gameDetails');
+                } else if (activeScreen === 'setup' || activeScreen === 'manageTeam' || activeScreen === 'stats') {
+                    setActiveScreen('home');
+                }
+            };
 
             return (
                 <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -503,17 +613,10 @@
                     <div className="bg-blue-600 text-white p-4 shadow-md">
                         <div className="flex items-center justify-between">
                             <h1 className="text-xl font-bold">Basketball Tracker</h1>
-                            {(activeScreen !== 'home' && activeScreen !== 'game' && activeScreen !== 'selectPlayers') && (
+                            {showBackButton && (
                                 <button
-                                    onClick={() => {
-                                        if (activeScreen === 'selectPlayers') {
-                                            setActiveScreen('home');
-                                            setGameData(null);
-                                        } else {
-                                            setActiveScreen('home');
-                                        }
-                                    }}
-                                    className="px-3 py-1 bg-blue-500 rounded text-sm hover:bg-blue-400 transition-colors"
+                                    onClick={handleBack}
+                                    className="px-3 py-1 bg-blue-500 rounded text-sm hover:bg-blue-400 transition-colors back-btn"
                                 >
                                     Back
                                 </button>
@@ -575,19 +678,21 @@
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Team</label>
                                 <div className="flex flex-wrap gap-2 mb-4">
-                                    {teams.map(team => (
-                                        <button
-                                            key={team.id}
-                                            onClick={() => setCurrentTeamId(team.id)}
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                                currentTeamId === team.id
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                            }`}
-                                        >
-                                            {team.name}
-                                        </button>
-                                    ))}
+                                    {teams.map(function(team) {
+                                        return (
+                                            <button
+                                                key={team.id}
+                                                onClick={function() { setCurrentTeamId(team.id); }}
+                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    currentTeamId === team.id
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                }`}
+                                            >
+                                                {team.name}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                                 
                                 {/* Add New Team */}
@@ -595,7 +700,7 @@
                                     <input
                                         type="text"
                                         value={newTeamName}
-                                        onChange={(e) => setNewTeamName(e.target.value)}
+                                        onChange={function(e) { setNewTeamName(e.target.value); }}
                                         placeholder="New team name"
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
@@ -622,22 +727,24 @@
                                         </div>
                                     ) : (
                                         <div className="space-y-2 mb-4">
-                                            {sortedAllPlayers.map(player => (
-                                                <div key={player.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                                            {player.number}
+                                            {sortedAllPlayers.map(function(player) {
+                                                return (
+                                                    <div key={player.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                                {player.number}
+                                                            </div>
+                                                            <span className="font-medium text-gray-800">{player.name}</span>
                                                         </div>
-                                                        <span className="font-medium text-gray-800">{player.name}</span>
+                                                        <button
+                                                            onClick={function() { removePlayer(player.id); }}
+                                                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                                        >
+                                                            Remove
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={() => removePlayer(player.id)}
-                                                        className="text-red-600 hover:text-red-800 text-sm font-medium"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -646,14 +753,14 @@
                                         <input
                                             type="text"
                                             value={newPlayerName}
-                                            onChange={(e) => setNewPlayerName(e.target.value)}
+                                            onChange={function(e) { setNewPlayerName(e.target.value); }}
                                             placeholder="Player name"
                                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <input
                                             type="number"
                                             value={newPlayerNumber}
-                                            onChange={(e) => setNewPlayerNumber(e.target.value)}
+                                            onChange={function(e) { setNewPlayerNumber(e.target.value); }}
                                             placeholder="#"
                                             className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
@@ -689,9 +796,9 @@
 
                             {/* All Players List */}
                             <div className="space-y-2 mb-6">
-                                {sortedAllPlayers.map(player => {
-                                    const playerInGame = gameData.players.find(p => p.id === player.id);
-                                    const isOnCourt = playerInGame?.onCourt;
+                                {sortedAllPlayers.map(function(player) {
+                                    const playerInGame = gameData.players.find(function(p) { return p.id === player.id; });
+                                    const isOnCourt = playerInGame ? playerInGame.onCourt : false;
                                     const isFouledOut = player.fouls >= 5;
                                     
                                     return (
@@ -714,10 +821,10 @@
                                                 </div>
                                                 
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={function() {
                                                         if (isFouledOut) return;
                                                         
-                                                        const onCourtCount = gameData.players.filter(p => p.onCourt).length;
+                                                        const onCourtCount = gameData.players.filter(function(p) { return p.onCourt; }).length;
                                                         const willBeOnCourt = !isOnCourt;
                                                         
                                                         if (willBeOnCourt && onCourtCount >= 5) {
@@ -725,14 +832,16 @@
                                                             return;
                                                         }
                                                         
-                                                        setGameData(prev => ({
-                                                            ...prev,
-                                                            players: prev.players.map(p => 
-                                                                p.id === player.id 
-                                                                    ? { ...p, onCourt: !isOnCourt }
-                                                                    : p
-                                                            )
-                                                        }));
+                                                        setGameData(function(prev) {
+                                                            return {
+                                                                ...prev,
+                                                                players: prev.players.map(function(p) {
+                                                                    return p.id === player.id 
+                                                                        ? { ...p, onCourt: !isOnCourt }
+                                                                        : p;
+                                                                })
+                                                            };
+                                                        });
                                                     }}
                                                     disabled={isFouledOut}
                                                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -754,7 +863,7 @@
                             {/* Selected Count */}
                             <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
                                 <span className="font-medium">
-                                    {gameData.players.filter(p => p.onCourt).length} / 5 players selected
+                                    {gameData.players.filter(function(p) { return p.onCourt; }).length} / 5 players selected
                                 </span>
                             </div>
 
@@ -806,8 +915,8 @@
                             <div className="mb-6">
                                 <h3 className="font-medium text-gray-800 mb-3">On Court Players</h3>
                                 <div className="space-y-3">
-                                    {sortedOnCourtPlayers.map(player => {
-                                        const playerInGame = gameData.players.find(p => p.id === player.id);
+                                    {sortedOnCourtPlayers.map(function(player) {
+                                        const playerInGame = gameData.players.find(function(p) { return p.id === player.id; });
                                         const totalTime = getTotalPlayingTime(playerInGame);
                                         const isFouledOut = playerInGame.fouls >= 5;
                                         const isCloseToFoulingOut = playerInGame.fouls >= 4;
@@ -819,7 +928,7 @@
                                                 <div className="flex items-center justify-between mb-3">
                                                     <div className="flex items-center space-x-3">
                                                         <div 
-                                                            onClick={() => gameStarted && togglePlayerPlaying(player.id)}
+                                                            onClick={function() { gameStarted && togglePlayerPlaying(player.id); }}
                                                             className={`cursor-pointer ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             <div className="flex items-center space-x-3">
@@ -840,7 +949,7 @@
                                                     
                                                     <div className="flex items-center space-x-2">
                                                         <button
-                                                            onClick={() => makeSubstitution(player)}
+                                                            onClick={function() { makeSubstitution(player); }}
                                                             disabled={gameStarted}
                                                             className={`px-2 py-1 text-xs font-medium rounded ${
                                                                 gameStarted 
@@ -863,37 +972,37 @@
                                                 {/* Action buttons */}
                                                 <div className="grid grid-cols-6 gap-1 mb-2">
                                                     <button
-                                                        onClick={() => updatePlayerScore(player.id, 1)}
+                                                        onClick={function() { updatePlayerScore(player.id, 1); }}
                                                         className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                     >
                                                         +1
                                                     </button>
                                                     <button
-                                                        onClick={() => updatePlayerScore(player.id, 2)}
+                                                        onClick={function() { updatePlayerScore(player.id, 2); }}
                                                         className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                     >
                                                         +2
                                                     </button>
                                                     <button
-                                                        onClick={() => updatePlayerScore(player.id, 3)}
+                                                        onClick={function() { updatePlayerScore(player.id, 3); }}
                                                         className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                     >
                                                         +3
                                                     </button>
                                                     <button
-                                                        onClick={() => updatePlayerFouls(player.id, 1)}
+                                                        onClick={function() { updatePlayerFouls(player.id, 1); }}
                                                         className="py-2 bg-red-100 text-red-800 rounded text-sm font-medium hover:bg-red-200 transition-colors"
                                                     >
                                                         F
                                                     </button>
                                                     <button
-                                                        onClick={() => updatePlayerScore(player.id, -1)}
+                                                        onClick={function() { updatePlayerScore(player.id, -1); }}
                                                         className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
                                                     >
                                                         -1
                                                     </button>
                                                     <button
-                                                        onClick={() => updatePlayerFouls(player.id, -1)}
+                                                        onClick={function() { updatePlayerFouls(player.id, -1); }}
                                                         className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
                                                     >
                                                         -F
@@ -934,22 +1043,22 @@
                                 <div className="p-4 border-b border-gray-200">
                                     <h3 className="font-semibold text-gray-800">Make Substitution</h3>
                                     <p className="text-sm text-gray-600 mt-1">
-                                        Replace {playerToSubstitute?.name} #{playerToSubstitute?.number}
+                                        Replace {playerToSubstitute ? playerToSubstitute.name : ''} #{playerToSubstitute ? playerToSubstitute.number : ''}
                                     </p>
                                 </div>
                                 
                                 <div className="p-4 max-h-60 overflow-y-auto">
                                     <p className="text-sm text-gray-600 mb-3">Select player to enter:</p>
                                     <div className="space-y-2">
-                                        {sortedBenchPlayers.map(player => {
-                                            const playerInGame = gameData?.players.find(p => p.id === player.id);
-                                            const isFouledOut = playerInGame?.fouls >= 5;
+                                        {sortedBenchPlayers.map(function(player) {
+                                            const playerInGame = gameData ? gameData.players.find(function(p) { return p.id === player.id; }) : null;
+                                            const isFouledOut = playerInGame ? playerInGame.fouls >= 5 : false;
                                             return (
                                                 <div
                                                     key={player.id}
-                                                    onClick={() => !isFouledOut && setSelectedSubstitute(player)}
+                                                    onClick={function() { !isFouledOut && setSelectedSubstitute(player); }}
                                                     className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                                                        selectedSubstitute?.id === player.id
+                                                        selectedSubstitute && selectedSubstitute.id === player.id
                                                             ? 'border-blue-500 bg-blue-50'
                                                             : 'border-gray-200 hover:border-gray-300'
                                                     } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -964,11 +1073,11 @@
                                                                     {player.name}
                                                                 </div>
                                                                 <div className="text-xs text-gray-500">
-                                                                    F: {playerInGame?.fouls}/5
+                                                                    F: {playerInGame ? playerInGame.fouls : 0}/5
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        {selectedSubstitute?.id === player.id && (
+                                                        {selectedSubstitute && selectedSubstitute.id === player.id && (
                                                             <div className="text-blue-600 font-bold">✓</div>
                                                         )}
                                                     </div>
@@ -980,7 +1089,7 @@
                                 
                                 <div className="p-4 border-t border-gray-200 flex space-x-3">
                                     <button
-                                        onClick={() => {
+                                        onClick={function() {
                                             setShowSubstitution(false);
                                             setSelectedSubstitute(null);
                                             setPlayerToSubstitute(null);
@@ -1038,7 +1147,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Game Statistics</h2>
                                 <button
-                                    onClick={() => setActiveScreen('home')}
+                                    onClick={function() { setActiveScreen('home'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -1053,29 +1162,31 @@
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {savedGames.map((game, index) => (
-                                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div>
-                                                    <h3 className="font-medium text-gray-800">{game.teamName}</h3>
-                                                    <p className="text-sm text-gray-500">
-                                                        {new Date(game.startTime).toLocaleDateString()} • 
-                                                        {game.periods} periods • 
-                                                        {formatTime(game.finalTime)}
-                                                    </p>
+                                    {savedGames.map(function(game, index) {
+                                        return (
+                                            <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div>
+                                                        <h3 className="font-medium text-gray-800">{game.teamName}</h3>
+                                                        <p className="text-sm text-gray-500">
+                                                            {new Date(game.startTime).toLocaleDateString()} • 
+                                                            {game.periods} periods • 
+                                                            {formatTimeSimple(game.finalTime)}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={function() {
+                                                            setSelectedGame(game);
+                                                            setActiveScreen('gameDetails');
+                                                        }}
+                                                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        Details
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedGame(game);
-                                                        setActiveScreen('gameDetails');
-                                                    }}
-                                                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
-                                                >
-                                                    Details
-                                                </button>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -1087,7 +1198,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Game Details</h2>
                                 <button
-                                    onClick={() => setActiveScreen('stats')}
+                                    onClick={function() { setActiveScreen('stats'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -1099,7 +1210,7 @@
                                 <h3 className="font-medium text-blue-800 mb-2">{selectedGame.teamName}</h3>
                                 <div className="space-y-2 text-sm text-blue-700">
                                     <p>Date: {new Date(selectedGame.startTime).toLocaleDateString()}</p>
-                                    <p>Duration: {formatTime(selectedGame.finalTime)}</p>
+                                    <p>Duration: {formatTimeSimple(selectedGame.finalTime)}</p>
                                     <p>Periods: {selectedGame.periods}</p>
                                     <p>Period Duration: {selectedGame.periodDuration/60} minutes</p>
                                 </div>
@@ -1107,11 +1218,12 @@
 
                             {/* Player List */}
                             <div className="space-y-3">
-                                {selectedGame.players.map(player => {
-                                    const totalTime = player.timeIntervals.reduce((total, interval) => {
+                                {selectedGame.players.map(function(player) {
+                                    const playerInGame = selectedGame.players.find(function(p) { return p.id === player.id; });
+                                    const totalTime = playerInGame.timeIntervals.reduce(function(total, interval) {
                                         const end = interval.end || selectedGame.endTime;
                                         return total + Math.floor((end - interval.start) / 1000);
-                                    }, 0);
+                                    }, playerInGame.timeOnCourt || 0);
                                     
                                     return (
                                         <div key={player.id} className="p-4 border rounded-lg bg-white border-gray-200">
@@ -1123,19 +1235,19 @@
                                                     <div>
                                                         <div className="font-medium text-gray-800">{player.name}</div>
                                                         <div className="text-xs text-gray-500">
-                                                            {formatTime(totalTime)} • {player.fouls} fouls
+                                                            {formatTime(totalTime)} • {playerInGame.fouls} fouls
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-lg font-bold text-blue-600">{player.score}</div>
+                                                    <div className="text-lg font-bold text-blue-600">{playerInGame.score}</div>
                                                     <div className="text-xs text-gray-500">points</div>
                                                 </div>
                                             </div>
                                             
                                             <button
-                                                onClick={() => {
-                                                    setSelectedPlayer(player);
+                                                onClick={function() {
+                                                    setSelectedPlayer(playerInGame);
                                                     setActiveScreen('playerTimeline');
                                                 }}
                                                 className="w-full mt-2 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
@@ -1155,7 +1267,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Player Timeline</h2>
                                 <button
-                                    onClick={() => setActiveScreen('gameDetails')}
+                                    onClick={function() { setActiveScreen('gameDetails'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -1178,27 +1290,36 @@
                             </div>
 
                             {/* Timeline for each period */}
-                            {Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(period => {
+                            {Array.from({ length: selectedGame.periods }, function(_, periodIndex) { return periodIndex + 1; }).map(function(period) {
                                 const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
                                 const periodEnd = period * selectedGame.periodDuration * 1000;
                                 const periodDuration = selectedGame.periodDuration;
                                 
-                                const periodIntervals = selectedPlayer.timeIntervals
-                                    .filter(interval => {
-                                        const start = interval.start - selectedGame.startTime;
-                                        const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
-                                        return start < periodEnd && end > periodStart;
-                                    })
-                                    .map(interval => {
-                                        const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
-                                        const end = interval.end 
-                                            ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
-                                            : periodDuration * 1000;
-                                        return {
-                                            start: start / 1000,
-                                            end: end / 1000
-                                        };
-                                    });
+                                const periodIntervals = (selectedPlayer.timeIntervals || []).filter(function(interval) {
+                                    const start = interval.start - selectedGame.startTime;
+                                    const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
+                                    return start < periodEnd && end > periodStart;
+                                }).map(function(interval) {
+                                    const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
+                                    const end = interval.end 
+                                        ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
+                                        : periodDuration * 1000;
+                                    return {
+                                        start: start / 1000,
+                                        end: end / 1000
+                                    };
+                                });
+
+                                // Get score events for this period
+                                const periodScoreEvents = (selectedPlayer.scoreEvents || []).filter(function(event) {
+                                    return event && event.period === period;
+                                }).map(function(event) {
+                                    const position = (event.periodTime / periodDuration) * 100;
+                                    return {
+                                        points: event.points,
+                                        position: position
+                                    };
+                                });
 
                                 return (
                                     <div key={period} className="mb-6">
@@ -1210,7 +1331,7 @@
                                                 <div className="absolute top-0 left-0 h-full w-full bg-red-200 rounded"></div>
                                                 
                                                 {/* Playing time (green) */}
-                                                {periodIntervals.map((interval, idx) => {
+                                                {periodIntervals.map(function(interval, idx) {
                                                     const width = ((interval.end - interval.start) / periodDuration) * 100;
                                                     const left = (interval.start / periodDuration) * 100;
                                                     return (
@@ -1222,24 +1343,39 @@
                                                     );
                                                 })}
                                                 
+                                                {/* Score markers */}
+                                                {periodScoreEvents.map(function(event, idx) {
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className={`score-marker score-marker-${event.points}`}
+                                                            style={{ left: `${event.position}%` }}
+                                                        >
+                                                            {event.points}
+                                                        </div>
+                                                    );
+                                                })}
+                                                
                                                 {/* Period markers */}
                                                 <div className="absolute top-0 left-0 h-full w-0.5 bg-gray-400"></div>
                                                 <div className="absolute top-0 right-0 h-full w-0.5 bg-gray-400"></div>
                                                 
                                                 {/* Time markers */}
-                                                {Array.from({ length: 6 }, (_, i) => i * 2).map(minute => (
-                                                    <div key={minute} className="absolute top-0 h-full w-0.5 bg-gray-300" style={{ left: `${(minute * 60) / periodDuration * 100}%` }}>
-                                                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600">
-                                                            {minute}'
+                                                {Array.from({ length: 6 }, function(_, i) { return i * 2; }).map(function(minute) {
+                                                    return (
+                                                        <div key={minute} className="absolute top-0 h-full w-0.5 bg-gray-300" style={{ left: `${(minute * 60) / periodDuration * 100}%` }}>
+                                                            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600">
+                                                                {minute}'
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                             
                                             {/* Events */}
                                             <div className="text-sm text-gray-600">
                                                 {periodIntervals.length > 0 ? (
-                                                    <p>Played {formatTime(periodIntervals.reduce((total, interval) => total + (interval.end - interval.start), 0))}</p>
+                                                    <p>Played {formatTime(periodIntervals.reduce(function(total, interval) { return total + (interval.end - interval.start); }, 0))}</p>
                                                 ) : (
                                                     <p>Did not play</p>
                                                 )}
@@ -1270,10 +1406,14 @@
                                                 min="1"
                                                 max="10"
                                                 value={setupConfig.periods}
-                                                onChange={(e) => setSetupConfig(prev => ({
-                                                    ...prev,
-                                                    periods: parseInt(e.target.value) || 1
-                                                }))}
+                                                onChange={function(e) { 
+                                                    setSetupConfig(function(prev) {
+                                                        return {
+                                                            ...prev,
+                                                            periods: parseInt(e.target.value) || 1
+                                                        };
+                                                    });
+                                                }}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                             <p className="text-xs text-gray-500 mt-1">
@@ -1290,10 +1430,14 @@
                                                 min="1"
                                                 max="30"
                                                 value={setupConfig.periodDuration / 60}
-                                                onChange={(e) => setSetupConfig(prev => ({
-                                                    ...prev,
-                                                    periodDuration: (parseInt(e.target.value) || 1) * 60
-                                                }))}
+                                                onChange={function(e) { 
+                                                    setSetupConfig(function(prev) {
+                                                        return {
+                                                            ...prev,
+                                                            periodDuration: (parseInt(e.target.value) || 1) * 60
+                                                        };
+                                                    });
+                                                }}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                             <p className="text-xs text-gray-500 mt-1">
@@ -1307,7 +1451,7 @@
                                     <h3 className="font-medium text-gray-800 mb-2">Data Management</h3>
                                     <p className="text-sm text-gray-600 mb-3">All data is saved locally on your device.</p>
                                     <button
-                                        onClick={() => {
+                                        onClick={function() {
                                             if (window.confirm('Are you sure you want to reset all data? This cannot be undone!')) {
                                                 setTeams([{ id: 1, name: 'Home Team', players: [] }]);
                                                 setSavedGames([]);
@@ -1352,7 +1496,7 @@
                                         <p className="text-gray-600 mb-4">Your game has been successfully saved.</p>
                                         <div className="space-y-2">
                                             <button
-                                                onClick={() => {
+                                                onClick={function() {
                                                     setShowGameSummary(false);
                                                     setActiveScreen('home');
                                                 }}
@@ -1361,7 +1505,7 @@
                                                 Back to Home
                                             </button>
                                             <button
-                                                onClick={() => {
+                                                onClick={function() {
                                                     setShowGameSummary(false);
                                                     setActiveScreen('stats');
                                                 }}
@@ -1382,7 +1526,7 @@
         // Render the app
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
-        root.render(<App />);
+        root.render(React.createElement(App));
     </script>
 </body>
 </html>
