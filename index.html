@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -58,16 +59,32 @@
             border: 1px solid #374151;
         }
         .score-marker-1 {
-            background: #c2410c;
+            background: #3b82f6; /* blue-500 */
         }
         .score-marker-2 {
-            background: #166534;
+            background: #10b981; /* emerald-500 */
         }
         .score-marker-3 {
-            background: #7c2d12;
+            background: #8b5cf6; /* violet-500 */
         }
         .foul-marker {
-            background: #dc2626;
+            background: #ef4444; /* red-500 */
+        }
+        .period-marker {
+            position: absolute;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .period-label {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 2px;
         }
         .timeline-container {
             position: relative;
@@ -147,39 +164,46 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            margin-top: 8px;
+            margin-bottom: 8px;
         }
         .stat-item {
             background: #f3f4f6;
-            padding: 8px;
-            border-radius: 6px;
+            padding: 4px;
+            border-radius: 4px;
             text-align: center;
+            font-size: 12px;
         }
         .stat-label {
-            font-size: 12px;
+            font-weight: bold;
             color: #6b7280;
-            margin-bottom: 2px;
+            font-size: 10px;
+            margin-bottom: 1px;
         }
         .stat-value {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
         .score-1 {
-            background: #c2410c;
+            background: #3b82f6;
             color: white;
         }
         .score-2 {
-            background: #166534;
+            background: #10b981;
             color: white;
         }
         .score-3 {
-            background: #7c2d12;
+            background: #8b5cf6;
             color: white;
         }
         .fouls {
-            background: #dc2626;
+            background: #ef4444;
+            color: white;
+        }
+        .total {
+            background: #6b7280;
             color: white;
         }
         .download-instructions {
@@ -189,6 +213,49 @@
             border: 1px solid #bbf7d0;
             border-radius: 8px;
             font-size: 14px;
+        }
+        .export-error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .export-container {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 800px;
+            height: auto;
+            opacity: 0;
+        }
+        .player-score-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .player-number {
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .player-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .player-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6b7280;
         }
     </style>
 </head>
@@ -224,6 +291,9 @@
             const [showExportModal, setShowExportModal] = React.useState(false);
             const [exportContent, setExportContent] = React.useState('');
             const [exportImage, setExportImage] = React.useState(null);
+            const [exportError, setExportError] = React.useState('');
+            const [isGenerating, setIsGenerating] = React.useState(false);
+            const [exportContainer, setExportContainer] = React.useState(null);
             
             // Stats state
             const [savedGames, setSavedGames] = React.useState(function() {
@@ -242,6 +312,9 @@
                 return saved ? JSON.parse(saved) : defaultConfig;
             });
 
+            // Ref for the export container
+            const exportContainerRef = React.useRef(null);
+
             // Save to localStorage
             React.useEffect(function() {
                 localStorage.setItem('basketball-teams', JSON.stringify(teams));
@@ -254,6 +327,13 @@
             React.useEffect(function() {
                 localStorage.setItem('basketball-setup', JSON.stringify(setupConfig));
             }, [setupConfig]);
+
+            // Set the export container ref
+            React.useEffect(function() {
+                if (exportContainerRef.current) {
+                    setExportContainer(exportContainerRef.current);
+                }
+            }, []);
 
             const currentTeam = teams.find(t => t.id === currentTeamId) || teams[0];
             const onCourtPlayers = gameData ? gameData.players.filter(p => p.onCourt) : [];
@@ -800,6 +880,11 @@
             const exportGame = async function() {
                 if (!selectedGame) return;
                 
+                setIsGenerating(true);
+                setExportError('');
+                setExportImage(null);
+                setShowExportModal(true);
+                
                 // Calculate total team score
                 const totalScore = selectedGame.players.reduce(function(total, player) {
                     return total + (player.score || 0);
@@ -836,71 +921,45 @@
                             <p><strong>Total Score:</strong> ${totalScore} points</p>
                         </div>
                         
-                        <h2 style="margin: 0 0 10px 0; font-size: 18px;">Score & Fouls Breakdown</h2>
+                        <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Score & Fouls Breakdown</h2>
                         <div class="stats-grid">
                             <div class="stat-item score-1">
-                                <div class="stat-label">1-Pointers</div>
+                                <div class="stat-label">1</div>
                                 <div class="stat-value">${scoreStats.onePointers}</div>
                             </div>
                             <div class="stat-item score-2">
-                                <div class="stat-label">2-Pointers</div>
+                                <div class="stat-label">2</div>
                                 <div class="stat-value">${scoreStats.twoPointers}</div>
                             </div>
                             <div class="stat-item score-3">
-                                <div class="stat-label">3-Pointers</div>
+                                <div class="stat-label">3</div>
                                 <div class="stat-value">${scoreStats.threePointers}</div>
                             </div>
                             <div class="stat-item fouls">
-                                <div class="stat-label">Total Fouls</div>
+                                <div class="stat-label">F</div>
                                 <div class="stat-value">${scoreStats.totalFouls}</div>
+                            </div>
+                            <div class="stat-item total">
+                                <div class="stat-label">T</div>
+                                <div class="stat-value">${totalScore}</div>
                             </div>
                         </div>
                         
                         <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Statistics</h2>
-                        <div style="border: 1px solid #e5e7eb; border-radius: 8px;">
-                            ${selectedGame.players.map(function(player) {
-                                const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
-                                
-                                // Calculate individual player stats
-                                const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
-                                if (player.scoreEvents) {
-                                    player.scoreEvents.forEach(function(event) {
-                                        if (event.points === 1) playerStats.onePointers++;
-                                        if (event.points === 2) playerStats.twoPointers++;
-                                        if (event.points === 3) playerStats.threePointers++;
-                                    });
-                                }
-                                
-                                return `
-                                    <div class="export-player-row">
-                                        <div style="display: flex; align-items: center;">
-                                            <div style="width: 24px; height: 24px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 10px;">
-                                                ${player.number}
-                                            </div>
-                                            <div>
-                                                <div style="font-weight: bold;">${player.name}</div>
-                                                <div style="font-size: 12px; color: #6b7280;">#${player.number}</div>
-                                            </div>
-                                        </div>
-                                        <div style="text-align: right;">
-                                            <div>${formatTime(totalTime)}</div>
-                                            <div style="font-size: 12px;">${player.score} pts • ${player.fouls} fouls</div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                        
-                        <div class="export-total">
-                            <div style="display: flex; justify-content: space-between;">
-                                <div><strong>Total Score:</strong></div>
-                                <div><strong>${totalScore} points</strong></div>
-                            </div>
-                        </div>
-                        
-                        <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Timelines</h2>
                         ${selectedGame.players.map(function(player) {
                             const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
+                            
+                            // Calculate individual player stats
+                            const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
+                            if (player.scoreEvents) {
+                                player.scoreEvents.forEach(function(event) {
+                                    if (event.points === 1) playerStats.onePointers++;
+                                    if (event.points === 2) playerStats.twoPointers++;
+                                    if (event.points === 3) playerStats.threePointers++;
+                                });
+                            }
+                            
+                            const playerTotal = playerStats.onePointers + (playerStats.twoPointers * 2) + (playerStats.threePointers * 3);
                             
                             // Get playing time intervals for each period
                             const periodIntervals = Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(function(period) {
@@ -923,12 +982,53 @@
                                 });
                             });
                             
+                            // Get score events for timeline
+                            const scoreEvents = (player.scoreEvents || []).filter(function(event) {
+                                return event && event.points !== 0;
+                            }).map(function(event) {
+                                const position = (event.periodTime / selectedGame.periodDuration) * 100;
+                                return {
+                                    points: event.points,
+                                    position: position,
+                                    period: event.period
+                                };
+                            });
+                            
                             return `
-                                <div class="timeline-wrapper">
-                                    <div class="timeline-label">
-                                        #${player.number} ${player.name} - ${formatTime(totalTime)} • ${player.score} pts • ${player.fouls} fouls
+                                <div class="timeline-wrapper" style="margin-bottom: 15px;">
+                                    <div class="player-score-header">
+                                        <div class="player-number">${player.number}</div>
+                                        <div class="player-name">${player.name}</div>
                                     </div>
-                                    <div style="position: relative; height: 8px; background: #f87171; border-radius: 4px; overflow: hidden;">
+                                    
+                                    <div class="stats-grid" style="margin-top: 5px; margin-bottom: 8px;">
+                                        <div class="stat-item score-1">
+                                            <div class="stat-label">1</div>
+                                            <div class="stat-value">${playerStats.onePointers}</div>
+                                        </div>
+                                        <div class="stat-item score-2">
+                                            <div class="stat-label">2</div>
+                                            <div class="stat-value">${playerStats.twoPointers}</div>
+                                        </div>
+                                        <div class="stat-item score-3">
+                                            <div class="stat-label">3</div>
+                                            <div class="stat-value">${playerStats.threePointers}</div>
+                                        </div>
+                                        <div class="stat-item fouls">
+                                            <div class="stat-label">F</div>
+                                            <div class="stat-value">${player.fouls}</div>
+                                        </div>
+                                        <div class="stat-item total">
+                                            <div class="stat-label">T</div>
+                                            <div class="stat-value">${playerTotal}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="player-stats">
+                                        <div>${formatTime(totalTime)} • ${player.score} pts</div>
+                                    </div>
+                                    
+                                    <div style="position: relative; height: 8px; background: #f87171; border-radius: 4px; overflow: hidden; margin-top: 8px;">
                                         ${periodIntervals.map(function(intervals, periodIdx) {
                                             return intervals.map(function(interval) {
                                                 const width = ((interval.end - interval.start) / selectedGame.periodDuration) * 100;
@@ -936,32 +1036,87 @@
                                                 return `<div style="position: absolute; top: 0; left: ${left}%; width: ${width}%; height: 100%; background: #22c55e; border-radius: 4px;"></div>`;
                                             }).join('');
                                         }).join('')}
+                                        
+                                        ${Array.from({ length: selectedGame.periods }, (_, i) => i + 1).map(function(period) {
+                                            const left = (period * 100) / selectedGame.periods;
+                                            return `
+                                                <div class="period-marker" style="left: ${left}%;"></div>
+                                                <div class="period-label" style="left: ${left}%;">${period}</div>
+                                            `;
+                                        }).join('')}
+                                        
+                                        ${scoreEvents.map(function(event) {
+                                            const color = event.points === 1 ? '#3b82f6' : event.points === 2 ? '#10b981' : '#8b5cf6';
+                                            return `
+                                                <div class="score-line" style="left: ${event.position}%; background: ${color};"></div>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             `;
                         }).join('')}
+                        
+                        <div class="export-total">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div><strong>Total Score:</strong></div>
+                                <div><strong>${totalScore} points</strong></div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
                 setExportContent(exportHtml);
-                setShowExportModal(true);
                 
-                // Wait for content to render, then capture as image
+                // Wait for the next render cycle to ensure the element exists
                 setTimeout(async function() {
-                    const exportElement = document.getElementById('export-content');
-                    if (exportElement) {
-                        try {
+                    try {
+                        // Create a temporary container for the export content
+                        const tempContainer = document.createElement('div');
+                        tempContainer.innerHTML = exportHtml;
+                        tempContainer.style.position = 'fixed';
+                        tempContainer.style.top = '-9999px';
+                        tempContainer.style.left = '-9999px';
+                        tempContainer.style.width = '800px';
+                        tempContainer.style.opacity = '0';
+                        
+                        document.body.appendChild(tempContainer);
+                        
+                        // Wait for the browser to render the element
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        const exportElement = tempContainer.querySelector('#export-content');
+                        if (exportElement) {
                             const canvas = await html2canvas(exportElement, {
                                 scale: 2,
-                                backgroundColor: null,
-                                useCORS: true
+                                backgroundColor: '#ffffff',
+                                useCORS: true,
+                                allowTaint: true,
+                                logging: true
                             });
                             
                             const imageData = canvas.toDataURL('image/png');
                             setExportImage(imageData);
-                        } catch (error) {
-                            console.error('Error capturing image:', error);
+                            setIsGenerating(false);
+                            
+                            // Clean up the temporary container
+                            setTimeout(function() {
+                                document.body.removeChild(tempContainer);
+                            }, 1000);
+                        } else {
+                            throw new Error('Export element not found in temporary container');
                         }
+                    } catch (error) {
+                        console.error('Error capturing image:', error);
+                        setExportError(`Error generating image: ${error.message}. Please try again.`);
+                        setIsGenerating(false);
+                        
+                        // Clean up any temporary containers
+                        const tempContainers = document.querySelectorAll('[style*="top: -9999px"]');
+                        tempContainers.forEach(container => {
+                            if (container.parentNode) {
+                                container.parentNode.removeChild(container);
+                            }
+                        });
                     }
                 }, 100);
             };
@@ -969,10 +1124,6 @@
             // Share via email
             const shareViaEmail = function() {
                 if (!exportImage) return;
-                
-                const subject = encodeURIComponent('Basketball Game Report');
-                const body = encodeURIComponent('Please find the attached game report.');
-                const mailtoLink = `mailto:?subject=${subject}&body=${body}&attach=${exportImage}`;
                 
                 // Create temporary link and click it
                 const link = document.createElement('a');
@@ -1908,7 +2059,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v1.0<br/>
+                                        Basketball Tracker v0.99<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
@@ -1966,6 +2117,7 @@
                                         onClick={function() { 
                                             setShowExportModal(false); 
                                             setExportImage(null);
+                                            setExportError('');
                                         }}
                                         className="text-gray-500 hover:text-gray-700"
                                     >
@@ -1974,17 +2126,23 @@
                                 </div>
                                 
                                 <div className="p-4">
-                                    {exportImage ? (
+                                    {isGenerating ? (
+                                        <div className="text-center py-8">
+                                            <div className="text-4xl mb-4">🔄</div>
+                                            <p>Generating report image...</p>
+                                            <p className="text-sm text-gray-500 mt-2">This may take a moment. Please wait.</p>
+                                        </div>
+                                    ) : exportImage ? (
                                         <div>
                                             <img src={exportImage} alt="Game Report" style={{width: '100%', height: 'auto'}} />
                                             <div className="download-instructions">
-                                                <p>The image has been prepared for download. Click one of the buttons below to share:</p>
+                                                <p>The image has been prepared for download. Click one of the buttons below to download:</p>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <div className="text-4xl mb-4">🔄</div>
-                                            <p>Generating report image...</p>
+                                            <div className="text-4xl mb-4">❌</div>
+                                            <p className="export-error">{exportError || 'Failed to generate image. Please try again.'}</p>
                                         </div>
                                     )}
                                 </div>
