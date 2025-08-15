@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -103,6 +104,7 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background: white;
         }
         .export-header {
             text-align: center;
@@ -131,6 +133,62 @@
             padding: 10px;
             border-radius: 8px;
             margin-top: 15px;
+        }
+        .timeline-wrapper {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .timeline-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #374151;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat-item {
+            background: #f3f4f6;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+        .stat-value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .score-1 {
+            background: #c2410c;
+            color: white;
+        }
+        .score-2 {
+            background: #166534;
+            color: white;
+        }
+        .score-3 {
+            background: #7c2d12;
+            color: white;
+        }
+        .fouls {
+            background: #dc2626;
+            color: white;
+        }
+        .download-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -165,6 +223,7 @@
             const [selectedPlayer, setSelectedPlayer] = React.useState(null);
             const [showExportModal, setShowExportModal] = React.useState(false);
             const [exportContent, setExportContent] = React.useState('');
+            const [exportImage, setExportImage] = React.useState(null);
             
             // Stats state
             const [savedGames, setSavedGames] = React.useState(function() {
@@ -738,7 +797,7 @@
             };
 
             // Export game
-            const exportGame = function() {
+            const exportGame = async function() {
                 if (!selectedGame) return;
                 
                 // Calculate total team score
@@ -746,16 +805,30 @@
                     return total + (player.score || 0);
                 }, 0);
                 
+                // Calculate score breakdown
+                const scoreStats = selectedGame.players.reduce(function(stats, player) {
+                    if (!player.scoreEvents) return stats;
+                    
+                    player.scoreEvents.forEach(function(event) {
+                        if (event.points === 1) stats.onePointers++;
+                        if (event.points === 2) stats.twoPointers++;
+                        if (event.points === 3) stats.threePointers++;
+                    });
+                    
+                    stats.totalFouls += player.fouls;
+                    return stats;
+                }, { onePointers: 0, twoPointers: 0, threePointers: 0, totalFouls: 0 });
+                
                 // Create export content
                 const exportHtml = `
-                    <div class="export-content">
+                    <div class="export-content" id="export-content">
                         <div class="export-header">
                             <h1 style="font-size: 24px; margin: 0;">${selectedGame.teamName} Game Report</h1>
                             <p style="margin: 5px 0; color: #6b7280;">${new Date(selectedGame.startTime).toLocaleDateString()} • ${formatTimeSimple(selectedGame.finalTime)}</p>
                         </div>
                         
                         <div class="export-game-info">
-                            <h2 style="margin: 0 0 10px 0; font-size: 18px;">Game Details</h2>
+                            <h2 style="margin: 0 0 10px 0; font-size: 18px;">Game Summary</h2>
                             <p><strong>Date:</strong> ${new Date(selectedGame.startTime).toLocaleDateString()}</p>
                             <p><strong>Duration:</strong> ${formatTimeSimple(selectedGame.finalTime)}</p>
                             <p><strong>Periods:</strong> ${selectedGame.periods}</p>
@@ -763,10 +836,41 @@
                             <p><strong>Total Score:</strong> ${totalScore} points</p>
                         </div>
                         
-                        <h2 style="margin: 0 0 10px 0; font-size: 18px;">Player Statistics</h2>
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px;">Score & Fouls Breakdown</h2>
+                        <div class="stats-grid">
+                            <div class="stat-item score-1">
+                                <div class="stat-label">1-Pointers</div>
+                                <div class="stat-value">${scoreStats.onePointers}</div>
+                            </div>
+                            <div class="stat-item score-2">
+                                <div class="stat-label">2-Pointers</div>
+                                <div class="stat-value">${scoreStats.twoPointers}</div>
+                            </div>
+                            <div class="stat-item score-3">
+                                <div class="stat-label">3-Pointers</div>
+                                <div class="stat-value">${scoreStats.threePointers}</div>
+                            </div>
+                            <div class="stat-item fouls">
+                                <div class="stat-label">Total Fouls</div>
+                                <div class="stat-value">${scoreStats.totalFouls}</div>
+                            </div>
+                        </div>
+                        
+                        <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Statistics</h2>
                         <div style="border: 1px solid #e5e7eb; border-radius: 8px;">
                             ${selectedGame.players.map(function(player) {
                                 const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
+                                
+                                // Calculate individual player stats
+                                const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
+                                if (player.scoreEvents) {
+                                    player.scoreEvents.forEach(function(event) {
+                                        if (event.points === 1) playerStats.onePointers++;
+                                        if (event.points === 2) playerStats.twoPointers++;
+                                        if (event.points === 3) playerStats.threePointers++;
+                                    });
+                                }
+                                
                                 return `
                                     <div class="export-player-row">
                                         <div style="display: flex; align-items: center;">
@@ -793,24 +897,103 @@
                                 <div><strong>${totalScore} points</strong></div>
                             </div>
                         </div>
+                        
+                        <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Timelines</h2>
+                        ${selectedGame.players.map(function(player) {
+                            const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
+                            
+                            // Get playing time intervals for each period
+                            const periodIntervals = Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(function(period) {
+                                const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
+                                const periodEnd = period * selectedGame.periodDuration * 1000;
+                                
+                                return (player.timeIntervals || []).filter(function(interval) {
+                                    const start = interval.start - selectedGame.startTime;
+                                    const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
+                                    return start < periodEnd && end > periodStart;
+                                }).map(function(interval) {
+                                    const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
+                                    const end = interval.end 
+                                        ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
+                                        : selectedGame.periodDuration * 1000;
+                                    return {
+                                        start: start / 1000,
+                                        end: end / 1000
+                                    };
+                                });
+                            });
+                            
+                            return `
+                                <div class="timeline-wrapper">
+                                    <div class="timeline-label">
+                                        #${player.number} ${player.name} - ${formatTime(totalTime)} • ${player.score} pts • ${player.fouls} fouls
+                                    </div>
+                                    <div style="position: relative; height: 8px; background: #f87171; border-radius: 4px; overflow: hidden;">
+                                        ${periodIntervals.map(function(intervals, periodIdx) {
+                                            return intervals.map(function(interval) {
+                                                const width = ((interval.end - interval.start) / selectedGame.periodDuration) * 100;
+                                                const left = (interval.start / selectedGame.periodDuration) * 100;
+                                                return `<div style="position: absolute; top: 0; left: ${left}%; width: ${width}%; height: 100%; background: #22c55e; border-radius: 4px;"></div>`;
+                                            }).join('');
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
                 
                 setExportContent(exportHtml);
                 setShowExportModal(true);
+                
+                // Wait for content to render, then capture as image
+                setTimeout(async function() {
+                    const exportElement = document.getElementById('export-content');
+                    if (exportElement) {
+                        try {
+                            const canvas = await html2canvas(exportElement, {
+                                scale: 2,
+                                backgroundColor: null,
+                                useCORS: true
+                            });
+                            
+                            const imageData = canvas.toDataURL('image/png');
+                            setExportImage(imageData);
+                        } catch (error) {
+                            console.error('Error capturing image:', error);
+                        }
+                    }
+                }, 100);
             };
 
             // Share via email
             const shareViaEmail = function() {
+                if (!exportImage) return;
+                
                 const subject = encodeURIComponent('Basketball Game Report');
-                const body = encodeURIComponent('Please find the attached game report.\n\n' + exportContent);
-                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                const body = encodeURIComponent('Please find the attached game report.');
+                const mailtoLink = `mailto:?subject=${subject}&body=${body}&attach=${exportImage}`;
+                
+                // Create temporary link and click it
+                const link = document.createElement('a');
+                link.href = exportImage;
+                link.download = `basketball-report-${new Date().toISOString().slice(0, 10)}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             };
 
             // Share via WhatsApp
             const shareViaWhatsApp = function() {
-                const text = encodeURIComponent('Basketball Game Report\n\n' + exportContent);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
+                if (!exportImage) return;
+                
+                // Create temporary link and click it
+                const link = document.createElement('a');
+                link.href = exportImage;
+                link.download = `basketball-report-${new Date().toISOString().slice(0, 10)}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             };
 
             return (
@@ -1725,7 +1908,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v0.93<br/>
+                                        Basketball Tracker v1.0<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
@@ -1780,28 +1963,46 @@
                                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                                     <h3 className="font-semibold text-gray-800">Export Game Report</h3>
                                     <button
-                                        onClick={function() { setShowExportModal(false); }}
+                                        onClick={function() { 
+                                            setShowExportModal(false); 
+                                            setExportImage(null);
+                                        }}
                                         className="text-gray-500 hover:text-gray-700"
                                     >
                                         ✕
                                     </button>
                                 </div>
                                 
-                                <div className="p-4" dangerouslySetInnerHTML={{__html: exportContent}}>
+                                <div className="p-4">
+                                    {exportImage ? (
+                                        <div>
+                                            <img src={exportImage} alt="Game Report" style={{width: '100%', height: 'auto'}} />
+                                            <div className="download-instructions">
+                                                <p>The image has been prepared for download. Click one of the buttons below to share:</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <div className="text-4xl mb-4">🔄</div>
+                                            <p>Generating report image...</p>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div className="p-4 border-t border-gray-200 flex space-x-3">
                                     <button
                                         onClick={shareViaEmail}
-                                        className="flex-1 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                        disabled={!exportImage}
+                                        className="flex-1 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                                     >
-                                        Share via Email
+                                        Download & Email
                                     </button>
                                     <button
                                         onClick={shareViaWhatsApp}
-                                        className="flex-1 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                                        disabled={!exportImage}
+                                        className="flex-1 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                                     >
-                                        Share via WhatsApp
+                                        Download & WhatsApp
                                     </button>
                                 </div>
                             </div>
