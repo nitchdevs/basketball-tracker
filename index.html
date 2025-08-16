@@ -289,6 +289,7 @@
             const [showEndGameConfirm, setShowEndGameConfirm] = React.useState(false);
             const [selectedPlayer, setSelectedPlayer] = React.useState(null);
             const [showExportModal, setShowExportModal] = React.useState(false);
+            const [showJsonExportModal, setShowJsonExportModal] = React.useState(false);
             const [exportContent, setExportContent] = React.useState('');
             const [exportImage, setExportImage] = React.useState(null);
             const [exportError, setExportError] = React.useState('');
@@ -877,7 +878,7 @@
                 }
             };
 
-            // Export game
+            // Export game as PNG
             const exportGame = async function() {
                 if (!selectedGame) return;
                 
@@ -1122,6 +1123,48 @@
                         });
                     }
                 }, 100);
+            };
+
+            // Export game as JSON
+            const exportGameAsJson = function() {
+                if (!selectedGame) return;
+                
+                // Create a clean version of the game data without functions
+                const cleanGameData = {
+                    ...selectedGame,
+                    startTime: selectedGame.startTime,
+                    endTime: selectedGame.endTime,
+                    players: selectedGame.players.map(function(player) {
+                        // Convert timestamps to readable dates for better JSON readability
+                        return {
+                            id: player.id,
+                            name: player.name,
+                            number: player.number,
+                            onCourt: player.onCourt,
+                            playing: player.playing,
+                            score: player.score,
+                            fouls: player.fouls,
+                            timeOnCourt: player.timeOnCourt,
+                            timeIntervals: player.timeIntervals,
+                            scoreEvents: player.scoreEvents,
+                            foulEvents: player.foulEvents
+                        };
+                    })
+                };
+                
+                // Convert to JSON string with formatting
+                const jsonString = JSON.stringify(cleanGameData, null, 2);
+                
+                // Create and download the file
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `basketball-game-${new Date(selectedGame.startTime).toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             };
 
             // Share via email
@@ -1814,6 +1857,12 @@
                                     >
                                         Export Report
                                     </button>
+                                    <button
+                                        onClick={exportGameAsJson}
+                                        className="flex-1 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                                    >
+                                        Export JSON
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -2062,7 +2111,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v1.0<br/>
+                                        Basketball Tracker v0.8<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
