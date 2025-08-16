@@ -811,6 +811,7 @@
                 let totalSeconds = 0;
                 
                 player.timeIntervals.forEach(function(interval) {
+                    // Only count time within the game duration
                     const start = Math.max(interval.start, gameStartTime);
                     const end = interval.end ? Math.min(interval.end, gameEndTime) : gameEndTime;
                     
@@ -947,7 +948,9 @@
                         
                         <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Statistics</h2>
                         ${selectedGame.players.map(function(player) {
-                            const totalTime = calculatePlayingTime(player, selectedGame.startTime, selectedGame.endTime || Date.now());
+                            const gameStartTime = selectedGame.startTime;
+                            const gameEndTime = selectedGame.endTime || Date.now();
+                            const totalTime = calculatePlayingTime(player, gameStartTime, gameEndTime);
                             
                             // Calculate individual player stats
                             const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
@@ -1859,7 +1862,7 @@
                                     const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
                                     const end = interval.end 
                                         ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
-                                        : periodDuration * 1000;
+                                        : selectedGame.periodDuration * 1000;
                                     return {
                                         start: start / 1000,
                                         end: end / 1000
@@ -2059,7 +2062,7 @@
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v0.99<br/>
+                                        Basketball Tracker v1.0<br/>
                                         Track your games, players, and statistics.<br/>
                                         Configurable for different sports.<br/>
                                         Data is saved locally on your device.
