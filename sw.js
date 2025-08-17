@@ -7,7 +7,7 @@ const urlsToCache = [
   './icon-192.png',
   './icon-512.png',
   './screenshot/screenshot1.png',
-  './screenshot/screenshot2.png',
+  './screenshot/screenshot2.png', 
   './screenshot/screenshot3.png'
 ];
 
@@ -25,7 +25,6 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Return cached response if found, otherwise fetch from network
         return response || fetch(event.request);
       })
   );
@@ -38,7 +37,6 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // Delete old caches
             return caches.delete(cacheName);
           }
         })
