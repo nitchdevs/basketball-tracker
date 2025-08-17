@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,36 +18,54 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
+
         .player-card {
             transition: all 0.3s ease;
         }
+
         .player-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
+
         .btn {
             transition: all 0.2s ease;
         }
+
         .btn:hover {
             transform: translateY(-1px);
         }
+
         .fault-limit {
             animation: pulse 1.5s infinite;
         }
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
+
         .timer {
             font-variant-numeric: tabular-nums;
         }
+
         .back-btn {
             transition: all 0.2s ease;
         }
+
         .back-btn:hover {
             background-color: #1d4ed8 !important;
         }
+
         .score-marker {
             position: absolute;
             top: -20px;
@@ -58,18 +77,27 @@
             border-radius: 3px;
             border: 1px solid #374151;
         }
+
         .score-marker-1 {
-            background: #3b82f6; /* blue-500 */
+            background: #3b82f6;
+            /* blue-500 */
         }
+
         .score-marker-2 {
-            background: #10b981; /* emerald-500 */
+            background: #10b981;
+            /* emerald-500 */
         }
+
         .score-marker-3 {
-            background: #8b5cf6; /* violet-500 */
+            background: #8b5cf6;
+            /* violet-500 */
         }
+
         .foul-marker {
-            background: #ef4444; /* red-500 */
+            background: #ef4444;
+            /* red-500 */
         }
+
         .period-marker {
             position: absolute;
             top: 0;
@@ -77,6 +105,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.3);
         }
+
         .period-label {
             position: absolute;
             top: 100%;
@@ -86,27 +115,34 @@
             color: #6b7280;
             margin-top: 2px;
         }
+
         .timeline-container {
             position: relative;
             height: 8px;
-            background: #f87171; /* rose-400 for bench time */
+            background: #f87171;
+            /* rose-400 for bench time */
             border-radius: 4px;
             overflow: hidden;
         }
+
         .playing-time {
             position: absolute;
             top: 0;
             height: 100%;
-            background: #22c55e; /* green-500 for playing time */
+            background: #22c55e;
+            /* green-500 for playing time */
             border-radius: 4px;
         }
+
         .score-line {
             position: absolute;
             top: 0;
             width: 2px;
             height: 100%;
-            background: #3b82f6; /* blue-500 for score line */
+            background: #3b82f6;
+            /* blue-500 for score line */
         }
+
         .event-dot {
             position: absolute;
             top: 50%;
@@ -114,8 +150,10 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #3b82f6; /* blue-500 */
+            background: #3b82f6;
+            /* blue-500 */
         }
+
         .export-content {
             font-family: 'Inter', sans-serif;
             max-width: 800px;
@@ -123,27 +161,32 @@
             padding: 20px;
             background: white;
         }
+
         .export-header {
             text-align: center;
             border-bottom: 2px solid #e5e7eb;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
+
         .export-game-info {
             background: #f9fafb;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
         }
+
         .export-player-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid #e5e7eb;
         }
+
         .export-player-row:last-child {
             border-bottom: none;
         }
+
         .export-total {
             font-weight: bold;
             background: #f3f4f6;
@@ -151,17 +194,20 @@
             border-radius: 8px;
             margin-top: 15px;
         }
+
         .timeline-wrapper {
             margin-bottom: 20px;
             padding: 10px;
             background: #f9fafb;
             border-radius: 8px;
         }
+
         .timeline-label {
             font-weight: bold;
             margin-bottom: 5px;
             color: #374151;
         }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -169,6 +215,7 @@
             margin-top: 8px;
             margin-bottom: 8px;
         }
+
         .stat-item {
             background: #f3f4f6;
             padding: 4px;
@@ -176,36 +223,44 @@
             text-align: center;
             font-size: 12px;
         }
+
         .stat-label {
             font-weight: bold;
             color: #6b7280;
             font-size: 10px;
             margin-bottom: 1px;
         }
+
         .stat-value {
             font-weight: bold;
             font-size: 14px;
         }
+
         .score-1 {
             background: #3b82f6;
             color: white;
         }
+
         .score-2 {
             background: #10b981;
             color: white;
         }
+
         .score-3 {
             background: #8b5cf6;
             color: white;
         }
+
         .fouls {
             background: #ef4444;
             color: white;
         }
+
         .total {
             background: #6b7280;
             color: white;
         }
+
         .download-instructions {
             margin-top: 20px;
             padding: 15px;
@@ -214,11 +269,13 @@
             border-radius: 8px;
             font-size: 14px;
         }
+
         .export-error {
             color: #dc2626;
             font-size: 14px;
             margin-top: 10px;
         }
+
         .export-container {
             position: fixed;
             top: -9999px;
@@ -227,11 +284,13 @@
             height: auto;
             opacity: 0;
         }
+
         .player-score-header {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
         }
+
         .player-number {
             width: 24px;
             height: 24px;
@@ -245,10 +304,12 @@
             font-weight: bold;
             margin-right: 10px;
         }
+
         .player-name {
             font-weight: bold;
             font-size: 14px;
         }
+
         .player-stats {
             display: flex;
             align-items: center;
@@ -257,6 +318,7 @@
             font-size: 12px;
             color: #6b7280;
         }
+
         .substitution-icon {
             background: #ffffcc;
             color: #1f2937;
@@ -270,31 +332,37 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .substitution-icon:hover {
             background: #fff9a6;
             transform: scale(1.05);
         }
+
         .game-container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+
         .game-content {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
+
         .shooting-stats {
             background: #f0fdf4;
             border-top: 1px solid #bbf7d0;
             padding: 4px 0;
         }
+
         .shooting-label {
             font-size: 10px;
             color: #16a34a;
             text-align: center;
             margin-bottom: 2px;
         }
+
         .scored-label {
             font-size: 10px;
             color: #dc2626;
@@ -302,13 +370,14 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <div id="root"></div>
-    
+
     <script type="text/babel">
         const App = () => {
             const [activeScreen, setActiveScreen] = React.useState('home');
-            const [teams, setTeams] = React.useState(function() {
+            const [teams, setTeams] = React.useState(function () {
                 const saved = localStorage.getItem('basketball-teams');
                 return saved ? JSON.parse(saved) : [
                     { id: 1, name: 'Home Team', players: [] }
@@ -318,13 +387,13 @@
             const [newPlayerName, setNewPlayerName] = React.useState('');
             const [newPlayerNumber, setNewPlayerNumber] = React.useState('');
             const [newTeamName, setNewTeamName] = React.useState('');
-            
+
             // Game tracking state
             const [gameStarted, setGameStarted] = React.useState(false);
             const [gameTime, setGameTime] = React.useState(0);
             const [currentPeriod, setCurrentPeriod] = React.useState(1);
             const [gameTimer, setGameTimer] = React.useState(null);
-            const [gameData, setGameData] = React.useState(function() {
+            const [gameData, setGameData] = React.useState(function () {
                 // Try to load ongoing game from localStorage
                 const savedGameData = localStorage.getItem('basketball-ongoing-game');
                 if (savedGameData) {
@@ -349,16 +418,16 @@
             const [exportError, setExportError] = React.useState('');
             const [isGenerating, setIsGenerating] = React.useState(false);
             const [exportContainer, setExportContainer] = React.useState(null);
-            
+
             // Stats state
-            const [savedGames, setSavedGames] = React.useState(function() {
+            const [savedGames, setSavedGames] = React.useState(function () {
                 const saved = localStorage.getItem('basketball-games');
                 return saved ? JSON.parse(saved) : [];
             });
             const [selectedGame, setSelectedGame] = React.useState(null);
 
             // Setup configuration
-            const [setupConfig, setSetupConfig] = React.useState(function() {
+            const [setupConfig, setSetupConfig] = React.useState(function () {
                 const saved = localStorage.getItem('basketball-setup');
                 const defaultConfig = {
                     periods: 4,
@@ -371,27 +440,27 @@
             const exportContainerRef = React.useRef(null);
 
             // Save to localStorage
-            React.useEffect(function() {
+            React.useEffect(function () {
                 localStorage.setItem('basketball-teams', JSON.stringify(teams));
             }, [teams]);
 
-            React.useEffect(function() {
+            React.useEffect(function () {
                 localStorage.setItem('basketball-games', JSON.stringify(savedGames));
             }, [savedGames]);
 
-            React.useEffect(function() {
+            React.useEffect(function () {
                 localStorage.setItem('basketball-setup', JSON.stringify(setupConfig));
             }, [setupConfig]);
 
             // Set the export container ref
-            React.useEffect(function() {
+            React.useEffect(function () {
                 if (exportContainerRef.current) {
                     setExportContainer(exportContainerRef.current);
                 }
             }, []);
 
             // Save ongoing game to localStorage whenever gameData changes
-            React.useEffect(function() {
+            React.useEffect(function () {
                 if (gameData) {
                     localStorage.setItem('basketball-ongoing-game', JSON.stringify(gameData));
                 } else {
@@ -404,24 +473,24 @@
             const benchPlayers = gameData ? gameData.players.filter(p => !p.onCourt) : [];
 
             // Calculate total team score
-            const getTotalTeamScore = function() {
+            const getTotalTeamScore = function () {
                 if (!gameData || !gameData.players) return 0;
-                return gameData.players.reduce(function(total, player) {
+                return gameData.players.reduce(function (total, player) {
                     return total + (player.score || 0);
                 }, 0);
             };
 
-            const addPlayer = function() {
+            const addPlayer = function () {
                 if (newPlayerName.trim() && newPlayerNumber.trim()) {
-                    const numberExists = currentTeam.players.some(player => 
+                    const numberExists = currentTeam.players.some(player =>
                         player.number === newPlayerNumber.trim()
                     );
-                    
+
                     if (numberExists) {
                         alert('Player number ' + newPlayerNumber.trim() + ' is already in use!');
                         return;
                     }
-                    
+
                     const updatedTeams = teams.map(team => {
                         if (team.id === currentTeamId) {
                             return {
@@ -454,7 +523,7 @@
                 }
             };
 
-            const removePlayer = function(playerId) {
+            const removePlayer = function (playerId) {
                 const updatedTeams = teams.map(team => {
                     if (team.id === currentTeamId) {
                         return {
@@ -467,14 +536,14 @@
                 setTeams(updatedTeams);
             };
 
-            const addTeam = function() {
+            const addTeam = function () {
                 if (newTeamName.trim()) {
                     const newTeam = {
                         id: Date.now(),
                         name: newTeamName.trim(),
                         players: []
                     };
-                    setTeams(function(prev) {
+                    setTeams(function (prev) {
                         return [...prev, newTeam];
                     });
                     setCurrentTeamId(newTeam.id);
@@ -482,12 +551,12 @@
                 }
             };
 
-            const selectStartingPlayers = function() {
+            const selectStartingPlayers = function () {
                 if (currentTeam.players.length < 5) {
                     alert('You need at least 5 players to start a game!');
                     return;
                 }
-                
+
                 // If there's an ongoing game, resume it
                 const savedGameData = localStorage.getItem('basketball-ongoing-game');
                 if (savedGameData) {
@@ -498,7 +567,7 @@
                         return;
                     }
                 }
-                
+
                 // Otherwise start a new game
                 const playersWithCourtStatus = currentTeam.players.map(p => ({
                     ...p,
@@ -511,7 +580,7 @@
                     shootingEvents: p.shootingEvents || [],
                     lastTimeUpdate: null
                 }));
-                
+
                 setGameData({
                     teamId: currentTeamId,
                     teamName: currentTeam.name,
@@ -525,27 +594,27 @@
                 setActiveScreen('selectPlayers');
             };
 
-            const confirmStartingPlayers = function() {
+            const confirmStartingPlayers = function () {
                 const onCourtCount = gameData.players.filter(p => p.onCourt).length;
-                
+
                 if (onCourtCount !== 5) {
                     alert('You must select exactly 5 starting players!');
                     return;
                 }
-                
+
                 setGameStarted(false);
                 setGameTime(0);
                 setCurrentPeriod(1);
                 setActiveScreen('game');
             };
 
-            const togglePlayerOnCourt = function(outPlayerId, inPlayerId) {
+            const togglePlayerOnCourt = function (outPlayerId, inPlayerId) {
                 if (!gameData) return;
-                
-                setGameData(function(prev) {
+
+                setGameData(function (prev) {
                     return {
                         ...prev,
-                        players: prev.players.map(function(player) {
+                        players: prev.players.map(function (player) {
                             if (player.id === outPlayerId) {
                                 const now = Date.now();
                                 const updatedPlayer = {
@@ -554,18 +623,18 @@
                                     playing: false,
                                     lastTimeUpdate: now
                                 };
-                                
+
                                 if (player.playing && player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                    updatedPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
-                                        return idx === player.timeIntervals.length - 1 
-                                            ? { ...interval, end: now } 
+                                    updatedPlayer.timeIntervals = player.timeIntervals.map(function (interval, idx) {
+                                        return idx === player.timeIntervals.length - 1
+                                            ? { ...interval, end: now }
                                             : interval;
                                     });
                                 }
-                                
+
                                 return updatedPlayer;
                             }
-                            
+
                             if (player.id === inPlayerId) {
                                 const now = Date.now();
                                 const updatedPlayer = {
@@ -574,50 +643,50 @@
                                     playing: gameStarted,
                                     lastTimeUpdate: now
                                 };
-                                
+
                                 if (gameStarted) {
                                     updatedPlayer.timeIntervals = [
                                         ...player.timeIntervals,
                                         { start: now, end: null }
                                     ];
                                 }
-                                
+
                                 return updatedPlayer;
                             }
-                            
+
                             return player;
                         })
                     };
                 });
-                
+
                 setShowSubstitution(false);
                 setSelectedSubstitute(null);
                 setPlayerToSubstitute(null);
             };
 
-            const makeSubstitution = function(outPlayer) {
+            const makeSubstitution = function (outPlayer) {
                 if (gameStarted) {
                     alert('Substitutions can only be made when the game is stopped!');
                     return;
                 }
-                
+
                 setPlayerToSubstitute(outPlayer);
                 setShowSubstitution(true);
             };
 
-            const confirmSubstitution = function() {
+            const confirmSubstitution = function () {
                 if (selectedSubstitute && playerToSubstitute) {
                     togglePlayerOnCourt(playerToSubstitute.id, selectedSubstitute.id);
                 }
             };
 
-            const togglePlayerPlaying = function(playerId) {
+            const togglePlayerPlaying = function (playerId) {
                 if (!gameData || !gameStarted) return;
-                
-                setGameData(function(prev) {
+
+                setGameData(function (prev) {
                     return {
                         ...prev,
-                        players: prev.players.map(function(player) {
+                        players: prev.players.map(function (player) {
                             if (player.id === playerId && player.onCourt) {
                                 const now = Date.now();
                                 const updatedPlayer = {
@@ -625,12 +694,12 @@
                                     playing: !player.playing,
                                     lastTimeUpdate: now
                                 };
-                                
+
                                 if (player.playing) {
                                     if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                        updatedPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
-                                            return idx === player.timeIntervals.length - 1 
-                                                ? { ...interval, end: now } 
+                                        updatedPlayer.timeIntervals = player.timeIntervals.map(function (interval, idx) {
+                                            return idx === player.timeIntervals.length - 1
+                                                ? { ...interval, end: now }
                                                 : interval;
                                         });
                                     }
@@ -640,7 +709,7 @@
                                         { start: now, end: null }
                                     ];
                                 }
-                                
+
                                 return updatedPlayer;
                             }
                             return player;
@@ -649,31 +718,31 @@
                 });
             };
 
-            const updatePlayerScore = function(playerId, points) {
+            const updatePlayerScore = function (playerId, points) {
                 if (!gameData) return;
-                
-                setGameData(function(prev) {
+
+                setGameData(function (prev) {
                     return {
                         ...prev,
-                        players: prev.players.map(function(player) {
+                        players: prev.players.map(function (player) {
                             if (player.id === playerId) {
                                 const updatedPlayer = {
                                     ...player,
                                     score: Math.max(0, player.score + points)
                                 };
-                                
+
                                 // Ensure arrays exist
                                 if (!updatedPlayer.scoreEvents) {
                                     updatedPlayer.scoreEvents = [];
                                 }
-                                
+
                                 // Record score event
                                 if (points !== 0) {
                                     const now = Date.now();
                                     const gameTime = now - prev.startTime;
                                     const period = Math.floor(gameTime / prev.periodDuration) + 1;
                                     const periodTime = (gameTime % prev.periodDuration) / 1000;
-                                    
+
                                     updatedPlayer.scoreEvents = [
                                         ...updatedPlayer.scoreEvents,
                                         {
@@ -685,7 +754,7 @@
                                         }
                                     ];
                                 }
-                                
+
                                 return updatedPlayer;
                             }
                             return player;
@@ -694,16 +763,16 @@
                 });
             };
 
-            const updatePlayerFouls = function(playerId, change) {
+            const updatePlayerFouls = function (playerId, change) {
                 if (!gameData) return;
-                
+
                 // If game is running, pause it when foul is recorded
                 if (gameStarted) {
                     setGameStarted(false);
-                    setGameData(function(prev) {
+                    setGameData(function (prev) {
                         return {
                             ...prev,
-                            players: prev.players.map(function(player) {
+                            players: prev.players.map(function (player) {
                                 if (player.id === playerId && player.onCourt && player.playing) {
                                     const now = Date.now();
                                     if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
@@ -711,9 +780,9 @@
                                             ...player,
                                             playing: false,
                                             lastTimeUpdate: now,
-                                            timeIntervals: player.timeIntervals.map(function(interval, idx) {
-                                                return idx === player.timeIntervals.length - 1 
-                                                    ? { ...interval, end: now } 
+                                            timeIntervals: player.timeIntervals.map(function (interval, idx) {
+                                                return idx === player.timeIntervals.length - 1
+                                                    ? { ...interval, end: now }
                                                     : interval;
                                             })
                                         };
@@ -724,31 +793,31 @@
                         };
                     });
                 }
-                
-                setGameData(function(prev) {
+
+                setGameData(function (prev) {
                     return {
                         ...prev,
-                        players: prev.players.map(function(player) {
+                        players: prev.players.map(function (player) {
                             if (player.id === playerId) {
                                 const newFouls = Math.max(0, Math.min(6, player.fouls + change));
-                                
+
                                 const updatedPlayer = {
                                     ...player,
                                     fouls: newFouls
                                 };
-                                
+
                                 // Ensure arrays exist
                                 if (!updatedPlayer.foulEvents) {
                                     updatedPlayer.foulEvents = [];
                                 }
-                                
+
                                 // Record foul event
                                 if (change !== 0) {
                                     const now = Date.now();
                                     const gameTime = now - prev.startTime;
                                     const period = Math.floor(gameTime / prev.periodDuration) + 1;
                                     const periodTime = (gameTime % prev.periodDuration) / 1000;
-                                    
+
                                     updatedPlayer.foulEvents = [
                                         ...updatedPlayer.foulEvents,
                                         {
@@ -760,7 +829,7 @@
                                         }
                                     ];
                                 }
-                                
+
                                 return updatedPlayer;
                             }
                             return player;
@@ -769,31 +838,31 @@
                 });
             };
 
-            const updatePlayerShooting = function(playerId, shots) {
+            const updatePlayerShooting = function (playerId, shots) {
                 if (!gameData) return;
-                
-                setGameData(function(prev) {
+
+                setGameData(function (prev) {
                     return {
                         ...prev,
-                        players: prev.players.map(function(player) {
+                        players: prev.players.map(function (player) {
                             if (player.id === playerId) {
                                 const updatedPlayer = {
                                     ...player,
                                     shooting: Math.max(0, player.shooting + shots)
                                 };
-                                
+
                                 // Ensure arrays exist
                                 if (!updatedPlayer.shootingEvents) {
                                     updatedPlayer.shootingEvents = [];
                                 }
-                                
+
                                 // Record shooting event
                                 if (shots !== 0) {
                                     const now = Date.now();
                                     const gameTime = now - prev.startTime;
                                     const period = Math.floor(gameTime / prev.periodDuration) + 1;
                                     const periodTime = (gameTime % prev.periodDuration) / 1000;
-                                    
+
                                     updatedPlayer.shootingEvents = [
                                         ...updatedPlayer.shootingEvents,
                                         {
@@ -805,7 +874,7 @@
                                         }
                                     ];
                                 }
-                                
+
                                 return updatedPlayer;
                             }
                             return player;
@@ -815,27 +884,27 @@
             };
 
             // Game timer effect
-            React.useEffect(function() {
+            React.useEffect(function () {
                 if (gameStarted && gameData && activeScreen === 'game') {
-                    const timer = setInterval(function() {
-                        setGameTime(function(prevTime) {
+                    const timer = setInterval(function () {
+                        setGameTime(function (prevTime) {
                             const newTime = prevTime + 1;
-                            
+
                             // Check if period is finished
                             if (newTime % setupConfig.periodDuration === 0) {
                                 setGameStarted(false);
                                 clearInterval(timer);
                                 setGameTimer(null);
-                                setCurrentPeriod(function(prev) {
+                                setCurrentPeriod(function (prev) {
                                     return Math.min(prev + 1, setupConfig.periods);
                                 });
                                 return newTime;
                             }
-                            
-                            setGameData(function(prev) {
+
+                            setGameData(function (prev) {
                                 return {
                                     ...prev,
-                                    players: prev.players.map(function(player) {
+                                    players: prev.players.map(function (player) {
                                         if (player.onCourt && player.playing && player.lastTimeUpdate) {
                                             const timeDiff = Math.floor((Date.now() - player.lastTimeUpdate) / 1000);
                                             return {
@@ -851,9 +920,9 @@
                             return newTime;
                         });
                     }, 1000);
-                    
+
                     setGameTimer(timer);
-                    return function() {
+                    return function () {
                         clearInterval(timer);
                     };
                 } else {
@@ -864,14 +933,14 @@
                 }
             }, [gameStarted, gameData, activeScreen, setupConfig.periodDuration]);
 
-            const toggleGameTimer = function() {
+            const toggleGameTimer = function () {
                 setGameStarted(!gameStarted);
-                
+
                 if (gameData) {
-                    setGameData(function(prev) {
+                    setGameData(function (prev) {
                         return {
                             ...prev,
-                            players: prev.players.map(function(player) {
+                            players: prev.players.map(function (player) {
                                 if (player.onCourt && !gameStarted) {
                                     const now = Date.now();
                                     return {
@@ -890,9 +959,9 @@
                                             ...player,
                                             playing: false,
                                             lastTimeUpdate: now,
-                                            timeIntervals: player.timeIntervals.map(function(interval, idx) {
-                                                return idx === player.timeIntervals.length - 1 
-                                                    ? { ...interval, end: now } 
+                                            timeIntervals: player.timeIntervals.map(function (interval, idx) {
+                                                return idx === player.timeIntervals.length - 1
+                                                    ? { ...interval, end: now }
                                                     : interval;
                                             })
                                         };
@@ -905,7 +974,7 @@
                 }
             };
 
-            const requestEndGame = function() {
+            const requestEndGame = function () {
                 if (gameStarted) {
                     setShowEndGameConfirm(true);
                 } else {
@@ -913,16 +982,16 @@
                 }
             };
 
-            const confirmEndGame = function() {
+            const confirmEndGame = function () {
                 setShowEndGameConfirm(false);
                 endGame();
             };
 
-            const cancelEndGame = function() {
+            const cancelEndGame = function () {
                 setShowEndGameConfirm(false);
             };
 
-            const endGame = function() {
+            const endGame = function () {
                 if (gameData) {
                     const endTime = Date.now();
                     const finalGameData = {
@@ -930,26 +999,26 @@
                         endTime: endTime,
                         finalTime: gameTime,
                         period: currentPeriod,
-                        players: gameData.players.map(function(player) {
+                        players: gameData.players.map(function (player) {
                             let finalPlayer = { ...player };
                             if (player.timeIntervals.length > 0 && !player.timeIntervals[player.timeIntervals.length - 1].end) {
-                                finalPlayer.timeIntervals = player.timeIntervals.map(function(interval, idx) {
-                                    return idx === player.timeIntervals.length - 1 
-                                        ? { ...interval, end: endTime } 
+                                finalPlayer.timeIntervals = player.timeIntervals.map(function (interval, idx) {
+                                    return idx === player.timeIntervals.length - 1
+                                        ? { ...interval, end: endTime }
                                         : interval;
                                 });
                             }
                             return finalPlayer;
                         })
                     };
-                    
-                    setSavedGames(function(prev) {
+
+                    setSavedGames(function (prev) {
                         return [finalGameData, ...prev];
                     });
-                    
+
                     // Clear ongoing game from localStorage
                     localStorage.removeItem('basketball-ongoing-game');
-                    
+
                     setGameData(null);
                     setGameTime(0);
                     setGameStarted(false);
@@ -959,55 +1028,55 @@
                 }
             };
 
-            const formatTime = function(seconds) {
+            const formatTime = function (seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return mins + 'm ' + secs.toString().padStart(2, '0') + 's';
             };
 
-            const formatTimeSimple = function(seconds) {
+            const formatTimeSimple = function (seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return mins + ':' + secs.toString().padStart(2, '0');
             };
 
-            const calculatePlayingTime = function(player, gameStartTime, gameEndTime) {
+            const calculatePlayingTime = function (player, gameStartTime, gameEndTime) {
                 if (!player.timeIntervals || player.timeIntervals.length === 0) {
                     return 0;
                 }
-                
+
                 let totalSeconds = 0;
-                
-                player.timeIntervals.forEach(function(interval) {
+
+                player.timeIntervals.forEach(function (interval) {
                     // Only count time within the game duration
                     const start = Math.max(interval.start, gameStartTime);
                     const end = interval.end ? Math.min(interval.end, gameEndTime) : gameEndTime;
-                    
+
                     if (start < end) {
                         totalSeconds += Math.floor((end - start) / 1000);
                     }
                 });
-                
+
                 return totalSeconds;
             };
 
-            const getTotalPlayingTime = function(player, gameStartTime, gameEndTime) {
+            const getTotalPlayingTime = function (player, gameStartTime, gameEndTime) {
                 return calculatePlayingTime(player, gameStartTime, gameEndTime);
             };
 
-            const getPeriodTime = function() {
+            const getPeriodTime = function () {
                 const remaining = setupConfig.periodDuration - (gameTime % setupConfig.periodDuration);
                 return formatTimeSimple(remaining);
             };
 
             // Sort players by number
-            const sortedOnCourtPlayers = [...onCourtPlayers].sort(function(a, b) {
+            const sortedOnCourtPlayers = [...onCourtPlayers].sort(function (a, b) {
                 return parseInt(a.number) - parseInt(b.number);
             });
-            const sortedAllPlayers = [...currentTeam.players].sort(function(a, b) {
+            const sortedAllPlayers = [...currentTeam.players].sort(function (a, b) {
                 return parseInt(a.number) - parseInt(b.number);
             });
-            const sortedBenchPlayers = [...benchPlayers].sort(function(a, b) {
+            const sortedBenchPlayers = [...benchPlayers].sort(function (a, b) {
                 return parseInt(a.number) - parseInt(b.number);
             });
 
@@ -1015,7 +1084,7 @@
             const showBackButton = activeScreen !== 'home';
 
             // Custom back function for different screens
-            const handleBack = function() {
+            const handleBack = function () {
                 if (activeScreen === 'game') {
                     // Don't allow back during active game
                     return;
@@ -1034,7 +1103,7 @@
             };
 
             // Delete game
-            const deleteGame = function() {
+            const deleteGame = function () {
                 if (selectedGame && window.confirm('Are you sure you want to delete this game?')) {
                     const gameIndex = savedGames.indexOf(selectedGame);
                     const newGames = [...savedGames];
@@ -1046,33 +1115,33 @@
             };
 
             // Export game as PNG
-            const exportGame = async function() {
+            const exportGame = async function () {
                 if (!selectedGame) return;
-                
+
                 setIsGenerating(true);
                 setExportError('');
                 setExportImage(null);
                 setShowExportModal(true);
-                
+
                 // Calculate total team score
-                const totalScore = selectedGame.players.reduce(function(total, player) {
+                const totalScore = selectedGame.players.reduce(function (total, player) {
                     return total + (player.score || 0);
                 }, 0);
-                
+
                 // Calculate score breakdown
-                const scoreStats = selectedGame.players.reduce(function(stats, player) {
+                const scoreStats = selectedGame.players.reduce(function (stats, player) {
                     if (!player.scoreEvents) return stats;
-                    
-                    player.scoreEvents.forEach(function(event) {
+
+                    player.scoreEvents.forEach(function (event) {
                         if (event.points === 1) stats.onePointers++;
                         if (event.points === 2) stats.twoPointers++;
                         if (event.points === 3) stats.threePointers++;
                     });
-                    
+
                     stats.totalFouls += player.fouls;
                     return stats;
                 }, { onePointers: 0, twoPointers: 0, threePointers: 0, totalFouls: 0 });
-                
+
                 // Create export content
                 const exportHtml = `
                     <div class="export-content" id="export-content">
@@ -1086,7 +1155,7 @@
                             <p><strong>Date:</strong> ${new Date(selectedGame.startTime).toLocaleDateString()}</p>
                             <p><strong>Duration:</strong> ${formatTimeSimple(selectedGame.finalTime)}</p>
                             <p><strong>Periods:</strong> ${selectedGame.periods}</p>
-                            <p><strong>Period Duration:</strong> ${selectedGame.periodDuration/60} minutes</p>
+                            <p><strong>Period Duration:</strong> ${selectedGame.periodDuration / 60} minutes</p>
                             <p><strong>Total Score:</strong> ${totalScore} points</p>
                         </div>
                         
@@ -1115,57 +1184,57 @@
                         </div>
                         
                         <h2 style="margin: 20px 0 10px 0; font-size: 18px;">Player Statistics</h2>
-                        ${selectedGame.players.map(function(player) {
-                            const gameStartTime = selectedGame.startTime;
-                            const gameEndTime = selectedGame.endTime || Date.now();
-                            const totalTime = calculatePlayingTime(player, gameStartTime, gameEndTime);
-                            
-                            // Calculate individual player stats
-                            const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
-                            if (player.scoreEvents) {
-                                player.scoreEvents.forEach(function(event) {
-                                    if (event.points === 1) playerStats.onePointers++;
-                                    if (event.points === 2) playerStats.twoPointers++;
-                                    if (event.points === 3) playerStats.threePointers++;
-                                });
-                            }
-                            
-                            const playerTotal = playerStats.onePointers + (playerStats.twoPointers * 2) + (playerStats.threePointers * 3);
-                            
-                            // Get playing time intervals for each period
-                            const periodIntervals = Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(function(period) {
-                                const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
-                                const periodEnd = period * selectedGame.periodDuration * 1000;
-                                
-                                return (player.timeIntervals || []).filter(function(interval) {
-                                    const start = interval.start - selectedGame.startTime;
-                                    const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
-                                    return start < periodEnd && end > periodStart;
-                                }).map(function(interval) {
-                                    const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
-                                    const end = interval.end 
-                                        ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
-                                        : selectedGame.periodDuration * 1000;
-                                    return {
-                                        start: start / 1000,
-                                        end: end / 1000
-                                    };
-                                });
-                            });
-                            
-                            // Get score events for timeline
-                            const scoreEvents = (player.scoreEvents || []).filter(function(event) {
-                                return event && event.points !== 0;
-                            }).map(function(event) {
-                                const position = (event.periodTime / selectedGame.periodDuration) * 100;
-                                return {
-                                    points: event.points,
-                                    position: position,
-                                    period: event.period
-                                };
-                            });
-                            
-                            return `
+                        ${selectedGame.players.map(function (player) {
+                    const gameStartTime = selectedGame.startTime;
+                    const gameEndTime = selectedGame.endTime || Date.now();
+                    const totalTime = calculatePlayingTime(player, gameStartTime, gameEndTime);
+
+                    // Calculate individual player stats
+                    const playerStats = { onePointers: 0, twoPointers: 0, threePointers: 0 };
+                    if (player.scoreEvents) {
+                        player.scoreEvents.forEach(function (event) {
+                            if (event.points === 1) playerStats.onePointers++;
+                            if (event.points === 2) playerStats.twoPointers++;
+                            if (event.points === 3) playerStats.threePointers++;
+                        });
+                    }
+
+                    const playerTotal = playerStats.onePointers + (playerStats.twoPointers * 2) + (playerStats.threePointers * 3);
+
+                    // Get playing time intervals for each period
+                    const periodIntervals = Array.from({ length: selectedGame.periods }, (_, periodIndex) => periodIndex + 1).map(function (period) {
+                        const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
+                        const periodEnd = period * selectedGame.periodDuration * 1000;
+
+                        return (player.timeIntervals || []).filter(function (interval) {
+                            const start = interval.start - selectedGame.startTime;
+                            const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
+                            return start < periodEnd && end > periodStart;
+                        }).map(function (interval) {
+                            const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
+                            const end = interval.end
+                                ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart
+                                : selectedGame.periodDuration * 1000;
+                            return {
+                                start: start / 1000,
+                                end: end / 1000
+                            };
+                        });
+                    });
+
+                    // Get score events for timeline
+                    const scoreEvents = (player.scoreEvents || []).filter(function (event) {
+                        return event && event.points !== 0;
+                    }).map(function (event) {
+                        const position = (event.periodTime / selectedGame.periodDuration) * 100;
+                        return {
+                            points: event.points,
+                            position: position,
+                            period: event.period
+                        };
+                    });
+
+                    return `
                                 <div class="timeline-wrapper" style="margin-bottom: 15px;">
                                     <div class="player-score-header">
                                         <div class="player-number">${player.number}</div>
@@ -1200,32 +1269,32 @@
                                     </div>
                                     
                                     <div style="position: relative; height: 8px; background: #f87171; border-radius: 4px; overflow: hidden; margin-top: 8px;">
-                                        ${periodIntervals.map(function(intervals, periodIdx) {
-                                            return intervals.map(function(interval) {
-                                                const width = ((interval.end - interval.start) / selectedGame.periodDuration) * 100;
-                                                const left = (interval.start / selectedGame.periodDuration) * 100;
-                                                return `<div style="position: absolute; top: 0; left: ${left}%; width: ${width}%; height: 100%; background: #22c55e; border-radius: 4px;"></div>`;
-                                            }).join('');
-                                        }).join('')}
+                                        ${periodIntervals.map(function (intervals, periodIdx) {
+                        return intervals.map(function (interval) {
+                            const width = ((interval.end - interval.start) / selectedGame.periodDuration) * 100;
+                            const left = (interval.start / selectedGame.periodDuration) * 100;
+                            return `<div style="position: absolute; top: 0; left: ${left}%; width: ${width}%; height: 100%; background: #22c55e; border-radius: 4px;"></div>`;
+                        }).join('');
+                    }).join('')}
                                         
-                                        ${Array.from({ length: selectedGame.periods }, (_, i) => i + 1).map(function(period) {
-                                            const left = (period * 100) / selectedGame.periods;
-                                            return `
+                                        ${Array.from({ length: selectedGame.periods }, (_, i) => i + 1).map(function (period) {
+                        const left = (period * 100) / selectedGame.periods;
+                        return `
                                                 <div class="period-marker" style="left: ${left}%;"></div>
                                                 <div class="period-label" style="left: ${left}%;">${period}</div>
                                             `;
-                                        }).join('')}
+                    }).join('')}
                                         
-                                        ${scoreEvents.map(function(event) {
-                                            const color = event.points === 1 ? '#3b82f6' : event.points === 2 ? '#10b981' : '#8b5cf6';
-                                            return `
+                                        ${scoreEvents.map(function (event) {
+                        const color = event.points === 1 ? '#3b82f6' : event.points === 2 ? '#10b981' : '#8b5cf6';
+                        return `
                                                 <div class="score-line" style="left: ${event.position}%; background: ${color};"></div>
                                             `;
-                                        }).join('')}
+                    }).join('')}
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
+                }).join('')}
                         
                         <div class="export-total">
                             <div style="display: flex; justify-content: space-between;">
@@ -1235,11 +1304,11 @@
                         </div>
                     </div>
                 `;
-                
+
                 setExportContent(exportHtml);
-                
+
                 // Wait for the next render cycle to ensure the element exists
-                setTimeout(async function() {
+                setTimeout(async function () {
                     try {
                         // Create a temporary container for the export content
                         const tempContainer = document.createElement('div');
@@ -1249,12 +1318,12 @@
                         tempContainer.style.left = '-9999px';
                         tempContainer.style.width = '800px';
                         tempContainer.style.opacity = '0';
-                        
+
                         document.body.appendChild(tempContainer);
-                        
+
                         // Wait for the browser to render the element
                         await new Promise(resolve => setTimeout(resolve, 100));
-                        
+
                         const exportElement = tempContainer.querySelector('#export-content');
                         if (exportElement) {
                             const canvas = await html2canvas(exportElement, {
@@ -1264,13 +1333,13 @@
                                 allowTaint: true,
                                 logging: true
                             });
-                            
+
                             const imageData = canvas.toDataURL('image/png');
                             setExportImage(imageData);
                             setIsGenerating(false);
-                            
+
                             // Clean up the temporary container
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 document.body.removeChild(tempContainer);
                             }, 1000);
                         } else {
@@ -1280,7 +1349,7 @@
                         console.error('Error capturing image:', error);
                         setExportError(`Error generating image: ${error.message}. Please try again.`);
                         setIsGenerating(false);
-                        
+
                         // Clean up any temporary containers
                         const tempContainers = document.querySelectorAll('[style*="top: -9999px"]');
                         tempContainers.forEach(container => {
@@ -1293,15 +1362,15 @@
             };
 
             // Export game as JSON
-            const exportGameAsJson = function() {
+            const exportGameAsJson = function () {
                 if (!selectedGame) return;
-                
+
                 // Create a clean version of the game data without functions
                 const cleanGameData = {
                     ...selectedGame,
                     startTime: selectedGame.startTime,
                     endTime: selectedGame.endTime,
-                    players: selectedGame.players.map(function(player) {
+                    players: selectedGame.players.map(function (player) {
                         // Convert timestamps to readable dates for better JSON readability
                         return {
                             id: player.id,
@@ -1320,10 +1389,10 @@
                         };
                     })
                 };
-                
+
                 // Convert to JSON string with formatting
                 const jsonString = JSON.stringify(cleanGameData, null, 2);
-                
+
                 // Create and download the file
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1337,9 +1406,9 @@
             };
 
             // Share via email
-            const shareViaEmail = function() {
+            const shareViaEmail = function () {
                 if (!exportImage) return;
-                
+
                 // Create temporary link and click it
                 const link = document.createElement('a');
                 link.href = exportImage;
@@ -1350,9 +1419,9 @@
             };
 
             // Share via WhatsApp
-            const shareViaWhatsApp = function() {
+            const shareViaWhatsApp = function () {
                 if (!exportImage) return;
-                
+
                 // Create temporary link and click it
                 const link = document.createElement('a');
                 link.href = exportImage;
@@ -1392,7 +1461,7 @@
                                     <h3 className="font-semibold text-gray-800">Manage Team</h3>
                                     <p className="text-sm text-gray-500 mt-1">Create and edit teams and players</p>
                                 </button>
-                                
+
                                 <button
                                     onClick={selectStartingPlayers}
                                     className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
@@ -1401,7 +1470,7 @@
                                     <h3 className="font-semibold text-gray-800">Start a Game</h3>
                                     <p className="text-sm text-gray-500 mt-1">Begin tracking a new game</p>
                                 </button>
-                                
+
                                 <button
                                     onClick={() => setActiveScreen('stats')}
                                     disabled={!savedGames.length}
@@ -1411,7 +1480,7 @@
                                     <h3 className="font-semibold text-gray-800">View Stats</h3>
                                     <p className="text-sm text-gray-500 mt-1">See game statistics and history</p>
                                 </button>
-                                
+
                                 <button
                                     onClick={() => setActiveScreen('setup')}
                                     className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
@@ -1428,34 +1497,33 @@
                     {activeScreen === 'manageTeam' && (
                         <div className="p-4">
                             <h2 className="text-lg font-semibold text-gray-800 mb-4">Manage Teams</h2>
-                            
+
                             {/* Team Selection */}
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Team</label>
                                 <div className="flex flex-wrap gap-2 mb-4">
-                                    {teams.map(function(team) {
+                                    {teams.map(function (team) {
                                         return (
                                             <button
                                                 key={team.id}
-                                                onClick={function() { setCurrentTeamId(team.id); }}
-                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                                    currentTeamId === team.id
+                                                onClick={function () { setCurrentTeamId(team.id); }}
+                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${currentTeamId === team.id
                                                         ? 'bg-blue-600 text-white'
                                                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                                }`}
+                                                    }`}
                                             >
                                                 {team.name}
                                             </button>
                                         );
                                     })}
                                 </div>
-                                
+
                                 {/* Add New Team */}
                                 <div className="flex gap-2 mb-6">
                                     <input
                                         type="text"
                                         value={newTeamName}
-                                        onChange={function(e) { setNewTeamName(e.target.value); }}
+                                        onChange={function (e) { setNewTeamName(e.target.value); }}
                                         placeholder="New team name"
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
@@ -1475,14 +1543,14 @@
                                         <h3 className="font-medium text-gray-800">{currentTeam.name} Players</h3>
                                         <span className="text-sm text-gray-500">{currentTeam.players.length} players</span>
                                     </div>
-                                    
+
                                     {currentTeam.players.length === 0 ? (
                                         <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                                             No players added yet
                                         </div>
                                     ) : (
                                         <div className="space-y-2 mb-4">
-                                            {sortedAllPlayers.map(function(player) {
+                                            {sortedAllPlayers.map(function (player) {
                                                 return (
                                                     <div key={player.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
                                                         <div className="flex items-center space-x-3">
@@ -1492,7 +1560,7 @@
                                                             <span className="font-medium text-gray-800">{player.name}</span>
                                                         </div>
                                                         <button
-                                                            onClick={function() { removePlayer(player.id); }}
+                                                            onClick={function () { removePlayer(player.id); }}
                                                             className="text-red-600 hover:text-red-800 text-sm font-medium"
                                                         >
                                                             Remove
@@ -1508,14 +1576,14 @@
                                         <input
                                             type="text"
                                             value={newPlayerName}
-                                            onChange={function(e) { setNewPlayerName(e.target.value); }}
+                                            onChange={function (e) { setNewPlayerName(e.target.value); }}
                                             placeholder="Player name"
                                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <input
                                             type="number"
                                             value={newPlayerNumber}
-                                            onChange={function(e) { setNewPlayerNumber(e.target.value); }}
+                                            onChange={function (e) { setNewPlayerNumber(e.target.value); }}
                                             placeholder="#"
                                             className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
@@ -1536,14 +1604,14 @@
                         <div className="p-4">
                             <h2 className="text-lg font-semibold text-gray-800 mb-4">Select Starting Players</h2>
                             <p className="text-sm text-gray-600 mb-4">Select exactly 5 players to start the game:</p>
-                            
+
                             {/* Team and Setup Info */}
                             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="font-medium text-blue-800">{currentTeam.name}</h3>
                                         <p className="text-sm text-blue-700">
-                                            {setupConfig.periods} periods of {setupConfig.periodDuration/60} min each
+                                            {setupConfig.periods} periods of {setupConfig.periodDuration / 60} min each
                                         </p>
                                     </div>
                                 </div>
@@ -1551,15 +1619,14 @@
 
                             {/* All Players List */}
                             <div className="space-y-2 mb-6">
-                                {sortedAllPlayers.map(function(player) {
-                                    const playerInGame = gameData.players.find(function(p) { return p.id === player.id; });
+                                {sortedAllPlayers.map(function (player) {
+                                    const playerInGame = gameData.players.find(function (p) { return p.id === player.id; });
                                     const isOnCourt = playerInGame ? playerInGame.onCourt : false;
                                     const isFouledOut = player.fouls >= 5;
-                                    
+
                                     return (
-                                        <div key={player.id} className={`p-3 border rounded-lg transition-all ${
-                                            isOnCourt ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                                        } ${isFouledOut ? 'opacity-50' : ''}`}>
+                                        <div key={player.id} className={`p-3 border rounded-lg transition-all ${isOnCourt ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
+                                            } ${isFouledOut ? 'opacity-50' : ''}`}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">
                                                     <div className={`w-8 h-8 ${isFouledOut ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center text-sm font-bold`}>
@@ -1574,24 +1641,24 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <button
-                                                    onClick={function() {
+                                                    onClick={function () {
                                                         if (isFouledOut) return;
-                                                        
-                                                        const onCourtCount = gameData.players.filter(function(p) { return p.onCourt; }).length;
+
+                                                        const onCourtCount = gameData.players.filter(function (p) { return p.onCourt; }).length;
                                                         const willBeOnCourt = !isOnCourt;
-                                                        
+
                                                         if (willBeOnCourt && onCourtCount >= 5) {
                                                             alert('Maximum of 5 players allowed on court!');
                                                             return;
                                                         }
-                                                        
-                                                        setGameData(function(prev) {
+
+                                                        setGameData(function (prev) {
                                                             return {
                                                                 ...prev,
-                                                                players: prev.players.map(function(p) {
-                                                                    return p.id === player.id 
+                                                                players: prev.players.map(function (p) {
+                                                                    return p.id === player.id
                                                                         ? { ...p, onCourt: !isOnCourt }
                                                                         : p;
                                                                 })
@@ -1599,13 +1666,12 @@
                                                         });
                                                     }}
                                                     disabled={isFouledOut}
-                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                                        isOnCourt
+                                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isOnCourt
                                                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                                                             : isFouledOut
                                                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {isOnCourt ? 'On Court' : 'Add'}
                                                 </button>
@@ -1618,7 +1684,7 @@
                             {/* Selected Count */}
                             <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
                                 <span className="font-medium">
-                                    {gameData.players.filter(function(p) { return p.onCourt; }).length} / 5 players selected
+                                    {gameData.players.filter(function (p) { return p.onCourt; }).length} / 5 players selected
                                 </span>
                             </div>
 
@@ -1659,9 +1725,8 @@
                                     </div>
                                     <button
                                         onClick={toggleGameTimer}
-                                        className={`px-8 py-3 rounded-lg font-medium text-white text-sm transition-all ${
-                                            gameStarted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-                                        }`}
+                                        className={`px-8 py-3 rounded-lg font-medium text-white text-sm transition-all ${gameStarted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+                                            }`}
                                     >
                                         {gameStarted ? 'Pause Game' : 'Start Game'}
                                     </button>
@@ -1671,20 +1736,19 @@
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-800 mb-3">On Court Players</h3>
                                     <div className="space-y-3">
-                                        {sortedOnCourtPlayers.map(function(player) {
-                                            const playerInGame = gameData.players.find(function(p) { return p.id === player.id; });
+                                        {sortedOnCourtPlayers.map(function (player) {
+                                            const playerInGame = gameData.players.find(function (p) { return p.id === player.id; });
                                             const totalTime = getTotalPlayingTime(playerInGame, gameData.startTime, Date.now());
                                             const isFouledOut = playerInGame.fouls >= 5;
                                             const isCloseToFoulingOut = playerInGame.fouls >= 4;
-                                            
+
                                             return (
-                                                <div key={player.id} className={`p-4 border rounded-lg transition-all ${
-                                                    isFouledOut ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
-                                                }`}>
+                                                <div key={player.id} className={`p-4 border rounded-lg transition-all ${isFouledOut ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
+                                                    }`}>
                                                     <div className="flex items-center justify-between mb-3">
                                                         <div className="flex items-center space-x-3">
-                                                            <div 
-                                                                onClick={function() { gameStarted && togglePlayerPlaying(player.id); }}
+                                                            <div
+                                                                onClick={function () { gameStarted && togglePlayerPlaying(player.id); }}
                                                                 className={`cursor-pointer ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 <div className="flex items-center space-x-3">
@@ -1702,92 +1766,91 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="flex items-center space-x-2">
-                                                            <div 
-                                                                onClick={function() { makeSubstitution(player); }}
+                                                            <div
+                                                                onClick={function () { makeSubstitution(player); }}
                                                                 className="substitution-icon"
                                                             >
                                                                 ⇄
                                                             </div>
-                                                            <div className={`text-sm font-medium px-3 py-1.5 rounded text-center min-w-16 ${
-                                                                isCloseToFoulingOut 
-                                                                    ? 'bg-yellow-100 text-yellow-800 animate-pulse' 
+                                                            <div className={`text-sm font-medium px-3 py-1.5 rounded text-center min-w-16 ${isCloseToFoulingOut
+                                                                    ? 'bg-yellow-100 text-yellow-800 animate-pulse'
                                                                     : 'bg-gray-100 text-gray-800'
-                                                            }`}>
+                                                                }`}>
                                                                 F: {playerInGame.fouls}/5
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Shooting stats */}
                                                     <div className="shooting-stats mb-2">
                                                         <div className="shooting-label">Shoot</div>
                                                         <div className="grid grid-cols-3 gap-1">
                                                             <button
-                                                                onClick={function() { updatePlayerShooting(player.id, 1); }}
+                                                                onClick={function () { updatePlayerShooting(player.id, 1); }}
                                                                 className="py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
                                                             >
                                                                 1
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerShooting(player.id, 2); }}
+                                                                onClick={function () { updatePlayerShooting(player.id, 2); }}
                                                                 className="py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
                                                             >
                                                                 2
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerShooting(player.id, 3); }}
+                                                                onClick={function () { updatePlayerShooting(player.id, 3); }}
                                                                 className="py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
                                                             >
                                                                 3
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Scored stats */}
                                                     <div className="mb-2">
                                                         <div className="scored-label">Scored</div>
                                                         <div className="grid grid-cols-6 gap-1">
                                                             <button
-                                                                onClick={function() { updatePlayerScore(player.id, 1); }}
+                                                                onClick={function () { updatePlayerScore(player.id, 1); }}
                                                                 className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                             >
                                                                 +1
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerScore(player.id, 2); }}
+                                                                onClick={function () { updatePlayerScore(player.id, 2); }}
                                                                 className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                             >
                                                                 +2
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerScore(player.id, 3); }}
+                                                                onClick={function () { updatePlayerScore(player.id, 3); }}
                                                                 className="py-2 bg-green-100 text-green-800 rounded text-sm font-medium hover:bg-green-200 transition-colors"
                                                             >
                                                                 +3
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerFouls(player.id, 1); }}
+                                                                onClick={function () { updatePlayerFouls(player.id, 1); }}
                                                                 className="py-2 bg-red-100 text-red-800 rounded text-sm font-medium hover:bg-red-200 transition-colors"
                                                             >
                                                                 F
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerScore(player.id, -1); }}
+                                                                onClick={function () { updatePlayerScore(player.id, -1); }}
                                                                 className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
                                                             >
                                                                 -1
                                                             </button>
                                                             <button
-                                                                onClick={function() { updatePlayerFouls(player.id, -1); }}
+                                                                onClick={function () { updatePlayerFouls(player.id, -1); }}
                                                                 className="py-2 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-colors"
                                                             >
                                                                 -F
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Score display */}
                                                     <div className="flex justify-between items-center">
                                                         <div className={`text-2xl font-bold ${playerInGame.score > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -1826,22 +1889,21 @@
                                         Replace {playerToSubstitute ? playerToSubstitute.name : ''} #{playerToSubstitute ? playerToSubstitute.number : ''}
                                     </p>
                                 </div>
-                                
+
                                 <div className="p-4 max-h-60 overflow-y-auto">
                                     <p className="text-sm text-gray-600 mb-3">Select player to enter:</p>
                                     <div className="space-y-2">
-                                        {sortedBenchPlayers.map(function(player) {
-                                            const playerInGame = gameData ? gameData.players.find(function(p) { return p.id === player.id; }) : null;
+                                        {sortedBenchPlayers.map(function (player) {
+                                            const playerInGame = gameData ? gameData.players.find(function (p) { return p.id === player.id; }) : null;
                                             const isFouledOut = playerInGame ? playerInGame.fouls >= 5 : false;
                                             return (
                                                 <div
                                                     key={player.id}
-                                                    onClick={function() { !isFouledOut && setSelectedSubstitute(player); }}
-                                                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                                                        selectedSubstitute && selectedSubstitute.id === player.id
+                                                    onClick={function () { !isFouledOut && setSelectedSubstitute(player); }}
+                                                    className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedSubstitute && selectedSubstitute.id === player.id
                                                             ? 'border-blue-500 bg-blue-50'
                                                             : 'border-gray-200 hover:border-gray-300'
-                                                    } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-3">
@@ -1866,10 +1928,10 @@
                                         })}
                                     </div>
                                 </div>
-                                
+
                                 <div className="p-4 border-t border-gray-200 flex space-x-3">
                                     <button
-                                        onClick={function() {
+                                        onClick={function () {
                                             setShowSubstitution(false);
                                             setSelectedSubstitute(null);
                                             setPlayerToSubstitute(null);
@@ -1897,7 +1959,7 @@
                                 <div className="p-4 border-b border-gray-200">
                                     <h3 className="font-semibold text-gray-800">Confirm End Game</h3>
                                 </div>
-                                
+
                                 <div className="p-4">
                                     <p className="text-gray-600 mb-4">
                                         The game is still running. Are you sure you want to end it now?
@@ -1927,7 +1989,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Game Statistics</h2>
                                 <button
-                                    onClick={function() { setActiveScreen('home'); }}
+                                    onClick={function () { setActiveScreen('home'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -1942,20 +2004,20 @@
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {savedGames.map(function(game, index) {
+                                    {savedGames.map(function (game, index) {
                                         return (
                                             <div key={index} className="border border-gray-200 rounded-lg p-4">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <div>
                                                         <h3 className="font-medium text-gray-800">{game.teamName}</h3>
                                                         <p className="text-sm text-gray-500">
-                                                            {new Date(game.startTime).toLocaleDateString()} • 
-                                                            {game.periods} periods • 
+                                                            {new Date(game.startTime).toLocaleDateString()} •
+                                                            {game.periods} periods •
                                                             {formatTimeSimple(game.finalTime)}
                                                         </p>
                                                     </div>
                                                     <button
-                                                        onClick={function() {
+                                                        onClick={function () {
                                                             setSelectedGame(game);
                                                             setActiveScreen('gameDetails');
                                                         }}
@@ -1978,7 +2040,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Game Details</h2>
                                 <button
-                                    onClick={function() { setActiveScreen('stats'); }}
+                                    onClick={function () { setActiveScreen('stats'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -1992,16 +2054,16 @@
                                     <p>Date: {new Date(selectedGame.startTime).toLocaleDateString()}</p>
                                     <p>Duration: {formatTimeSimple(selectedGame.finalTime)}</p>
                                     <p>Periods: {selectedGame.periods}</p>
-                                    <p>Period Duration: {selectedGame.periodDuration/60} minutes</p>
+                                    <p>Period Duration: {selectedGame.periodDuration / 60} minutes</p>
                                 </div>
                             </div>
 
                             {/* Player List */}
                             <div className="space-y-3">
-                                {selectedGame.players.map(function(player) {
-                                    const playerInGame = selectedGame.players.find(function(p) { return p.id === player.id; });
+                                {selectedGame.players.map(function (player) {
+                                    const playerInGame = selectedGame.players.find(function (p) { return p.id === player.id; });
                                     const totalTime = calculatePlayingTime(playerInGame, selectedGame.startTime, selectedGame.endTime || Date.now());
-                                    
+
                                     return (
                                         <div key={player.id} className="p-4 border rounded-lg bg-white border-gray-200">
                                             <div className="flex items-center justify-between mb-2">
@@ -2021,9 +2083,9 @@
                                                     <div className="text-xs text-gray-500">points</div>
                                                 </div>
                                             </div>
-                                            
+
                                             <button
-                                                onClick={function() {
+                                                onClick={function () {
                                                     setSelectedPlayer(playerInGame);
                                                     setActiveScreen('playerTimeline');
                                                 }}
@@ -2068,7 +2130,7 @@
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800">Player Timeline</h2>
                                 <button
-                                    onClick={function() { setActiveScreen('gameDetails'); }}
+                                    onClick={function () { setActiveScreen('gameDetails'); }}
                                     className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
                                 >
                                     Back
@@ -2091,20 +2153,20 @@
                             </div>
 
                             {/* Timeline for each period */}
-                            {Array.from({ length: selectedGame.periods }, function(_, periodIndex) { return periodIndex + 1; }).map(function(period) {
+                            {Array.from({ length: selectedGame.periods }, function (_, periodIndex) { return periodIndex + 1; }).map(function (period) {
                                 const periodStart = (period - 1) * selectedGame.periodDuration * 1000;
                                 const periodEnd = period * selectedGame.periodDuration * 1000;
                                 const periodDuration = selectedGame.periodDuration;
-                                
+
                                 // Get playing time intervals for this period
-                                const periodIntervals = (selectedPlayer.timeIntervals || []).filter(function(interval) {
+                                const periodIntervals = (selectedPlayer.timeIntervals || []).filter(function (interval) {
                                     const start = interval.start - selectedGame.startTime;
                                     const end = interval.end ? interval.end - selectedGame.startTime : Date.now() - selectedGame.startTime;
                                     return start < periodEnd && end > periodStart;
-                                }).map(function(interval) {
+                                }).map(function (interval) {
                                     const start = Math.max(interval.start - selectedGame.startTime, periodStart) - periodStart;
-                                    const end = interval.end 
-                                        ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart 
+                                    const end = interval.end
+                                        ? Math.min(interval.end - selectedGame.startTime, periodEnd) - periodStart
                                         : selectedGame.periodDuration * 1000;
                                     return {
                                         start: start / 1000,
@@ -2113,9 +2175,9 @@
                                 });
 
                                 // Get score events for this period
-                                const periodScoreEvents = (selectedPlayer.scoreEvents || []).filter(function(event) {
+                                const periodScoreEvents = (selectedPlayer.scoreEvents || []).filter(function (event) {
                                     return event && event.period === period && event.points !== 0;
-                                }).map(function(event) {
+                                }).map(function (event) {
                                     const position = (event.periodTime / periodDuration) * 100;
                                     return {
                                         points: event.points,
@@ -2124,9 +2186,9 @@
                                 });
 
                                 // Get foul events for this period
-                                const periodFoulEvents = (selectedPlayer.foulEvents || []).filter(function(event) {
+                                const periodFoulEvents = (selectedPlayer.foulEvents || []).filter(function (event) {
                                     return event && event.period === period;
-                                }).map(function(event) {
+                                }).map(function (event) {
                                     const position = (event.periodTime / periodDuration) * 100;
                                     return {
                                         change: event.change,
@@ -2141,7 +2203,7 @@
                                             {/* Timeline */}
                                             <div className="timeline-container mb-4">
                                                 {/* Playing time segments */}
-                                                {periodIntervals.map(function(interval, idx) {
+                                                {periodIntervals.map(function (interval, idx) {
                                                     const width = ((interval.end - interval.start) / periodDuration) * 100;
                                                     const left = (interval.start / periodDuration) * 100;
                                                     return (
@@ -2152,9 +2214,9 @@
                                                         ></div>
                                                     );
                                                 })}
-                                                
+
                                                 {/* Score events */}
-                                                {periodScoreEvents.map(function(event, idx) {
+                                                {periodScoreEvents.map(function (event, idx) {
                                                     return (
                                                         <div key={`score-${idx}`}>
                                                             <div
@@ -2170,9 +2232,9 @@
                                                         </div>
                                                     );
                                                 })}
-                                                
+
                                                 {/* Foul events */}
-                                                {periodFoulEvents.map(function(event, idx) {
+                                                {periodFoulEvents.map(function (event, idx) {
                                                     return (
                                                         <div key={`foul-${idx}`}>
                                                             <div
@@ -2188,13 +2250,13 @@
                                                         </div>
                                                     );
                                                 })}
-                                                
+
                                                 {/* Period markers */}
                                                 <div className="absolute top-0 left-0 h-full w-0.5 bg-gray-400"></div>
                                                 <div className="absolute top-0 right-0 h-full w-0.5 bg-gray-400"></div>
-                                                
+
                                                 {/* Time markers */}
-                                                {Array.from({ length: 6 }, function(_, i) { return i * 2; }).map(function(minute) {
+                                                {Array.from({ length: 6 }, function (_, i) { return i * 2; }).map(function (minute) {
                                                     return (
                                                         <div key={minute} className="absolute top-0 h-full w-0.5 bg-gray-300" style={{ left: `${(minute * 60) / periodDuration * 100}%` }}>
                                                             <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-600">
@@ -2204,11 +2266,11 @@
                                                     );
                                                 })}
                                             </div>
-                                            
+
                                             {/* Events */}
                                             <div className="text-sm text-gray-600">
                                                 {periodIntervals.length > 0 ? (
-                                                    <p>Played {formatTime(periodIntervals.reduce(function(total, interval) { return total + (interval.end - interval.start); }, 0))}</p>
+                                                    <p>Played {formatTime(periodIntervals.reduce(function (total, interval) { return total + (interval.end - interval.start); }, 0))}</p>
                                                 ) : (
                                                     <p>Did not play</p>
                                                 )}
@@ -2224,11 +2286,11 @@
                     {activeScreen === 'setup' && (
                         <div className="p-4">
                             <h2 className="text-lg font-semibold text-gray-800 mb-6">Setup</h2>
-                            
+
                             <div className="space-y-6">
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-3">Game Configuration</h3>
-                                    
+
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2239,8 +2301,8 @@
                                                 min="1"
                                                 max="10"
                                                 value={setupConfig.periods}
-                                                onChange={function(e) { 
-                                                    setSetupConfig(function(prev) {
+                                                onChange={function (e) {
+                                                    setSetupConfig(function (prev) {
                                                         return {
                                                             ...prev,
                                                             periods: parseInt(e.target.value) || 1
@@ -2253,7 +2315,7 @@
                                                 Default: 4 (basketball), 2 (soccer), 3 (hockey)
                                             </p>
                                         </div>
-                                        
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Duration of Each Period (minutes)
@@ -2263,8 +2325,8 @@
                                                 min="1"
                                                 max="30"
                                                 value={setupConfig.periodDuration / 60}
-                                                onChange={function(e) { 
-                                                    setSetupConfig(function(prev) {
+                                                onChange={function (e) {
+                                                    setSetupConfig(function (prev) {
                                                         return {
                                                             ...prev,
                                                             periodDuration: (parseInt(e.target.value) || 1) * 60
@@ -2279,12 +2341,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">Data Management</h3>
                                     <p className="text-sm text-gray-600 mb-3">All data is saved locally on your device.</p>
                                     <button
-                                        onClick={function() {
+                                        onClick={function () {
                                             if (window.confirm('Are you sure you want to reset all data? This cannot be undone!')) {
                                                 setTeams([{ id: 1, name: 'Home Team', players: [] }]);
                                                 setSavedGames([]);
@@ -2302,13 +2364,13 @@
                                         Reset All Data
                                     </button>
                                 </div>
-                                
+
                                 <div className="p-4 border border-gray-200 rounded-lg">
                                     <h3 className="font-medium text-gray-800 mb-2">About</h3>
                                     <p className="text-sm text-gray-600">
-                                        Basketball Tracker v1.0<br/>
-                                        Track your games, players, and statistics.<br/>
-                                        Configurable for different sports.<br/>
+                                        Basketball Tracker v1.0<br />
+                                        Track your games, players, and statistics.<br />
+                                        Configurable for different sports.<br />
                                         Data is saved locally on your device.
                                     </p>
                                 </div>
@@ -2323,14 +2385,14 @@
                                 <div className="p-4 border-b border-gray-200">
                                     <h3 className="font-semibold text-gray-800 text-center">Game Saved!</h3>
                                 </div>
-                                
+
                                 <div className="p-4">
                                     <div className="text-center py-6">
                                         <div className="text-6xl mb-4">✅</div>
                                         <p className="text-gray-600 mb-4">Your game has been successfully saved.</p>
                                         <div className="space-y-2">
                                             <button
-                                                onClick={function() {
+                                                onClick={function () {
                                                     setShowGameSummary(false);
                                                     setActiveScreen('home');
                                                 }}
@@ -2339,7 +2401,7 @@
                                                 Back to Home
                                             </button>
                                             <button
-                                                onClick={function() {
+                                                onClick={function () {
                                                     setShowGameSummary(false);
                                                     setActiveScreen('stats');
                                                 }}
@@ -2361,8 +2423,8 @@
                                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                                     <h3 className="font-semibold text-gray-800">Export Game Report</h3>
                                     <button
-                                        onClick={function() { 
-                                            setShowExportModal(false); 
+                                        onClick={function () {
+                                            setShowExportModal(false);
                                             setExportImage(null);
                                             setExportError('');
                                         }}
@@ -2371,7 +2433,7 @@
                                         ✕
                                     </button>
                                 </div>
-                                
+
                                 <div className="p-4">
                                     {isGenerating ? (
                                         <div className="text-center py-8">
@@ -2381,7 +2443,7 @@
                                         </div>
                                     ) : exportImage ? (
                                         <div>
-                                            <img src={exportImage} alt="Game Report" style={{width: '100%', height: 'auto'}} />
+                                            <img src={exportImage} alt="Game Report" style={{ width: '100%', height: 'auto' }} />
                                             <div className="download-instructions">
                                                 <p>The image has been prepared for download. Click one of the buttons below to download:</p>
                                             </div>
@@ -2393,7 +2455,7 @@
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div className="p-4 border-t border-gray-200 flex space-x-3">
                                     <button
                                         onClick={shareViaEmail}
@@ -2422,5 +2484,16 @@
         const root = ReactDOM.createRoot(container);
         root.render(React.createElement(App));
     </script>
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(registrationError => console.log('SW registration failed'));
+            });
+        }
+    </script>
 </body>
+
 </html>

@@ -1,15 +1,121 @@
 {
   "name": "Basketball Tracker",
   "short_name": "Basketball",
+  "description": "Track basketball games, players, and statistics with ease",
   "start_url": "./",
+  "scope": "./",
+  "id": "basketball-tracker",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "orientation": "portrait",
+  "dir": "ltr",
+  "lang": "en",
   "background_color": "#ffffff",
   "theme_color": "#1976d2",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "type": "image/png",
+      "sizes": "375x667",
+      "description": "Home screen with team management options"
+    },
+    {
+      "src": "screenshot2.png",
+      "type": "image/png",
+      "sizes": "375x667",
+      "description": "Game tracking screen with player stats"
+    },
+    {
+      "src": "screenshot3.png",
+      "type": "image/png",
+      "sizes": "375x667",
+      "description": "Player timeline and statistics"
+    }
+  ],
+  "categories": [
+    "sports",
+    "productivity",
+    "utilities"
+  ],
+  "handle_links": "auto",
+  "launch_handler": {
+    "client_mode": "auto"
+  },
+  "file_handlers": [
+    {
+      "action": "./import",
+      "accept": {
+        "application/json": [".json"]
+      },
+      "name": "Basketball Game Data"
+    }
+  ],
+  "share_target": {
+    "action": "./import",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "gamefile",
+          "accept": ["application/json"]
+        }
+      ]
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Start New Game",
+      "short_name": "New Game",
+      "description": "Start tracking a new basketball game",
+      "url": "./start-game",
+      "icons": [
+        {
+          "src": "shortcut-start.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Statistics",
+      "short_name": "Stats",
+      "description": "View game statistics and history",
+      "url": "./stats",
+      "icons": [
+        {
+          "src": "shortcut-stats.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+basketball",
+      "url": "./import?data=%s"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
