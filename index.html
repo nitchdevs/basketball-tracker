@@ -1508,8 +1508,8 @@
                                                 key={team.id}
                                                 onClick={function () { setCurrentTeamId(team.id); }}
                                                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${currentTeamId === team.id
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                     }`}
                                             >
                                                 {team.name}
@@ -1667,10 +1667,10 @@
                                                     }}
                                                     disabled={isFouledOut}
                                                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isOnCourt
-                                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                            : isFouledOut
-                                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                        : isFouledOut
+                                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     {isOnCourt ? 'On Court' : 'Add'}
@@ -1775,8 +1775,8 @@
                                                                 ⇄
                                                             </div>
                                                             <div className={`text-sm font-medium px-3 py-1.5 rounded text-center min-w-16 ${isCloseToFoulingOut
-                                                                    ? 'bg-yellow-100 text-yellow-800 animate-pulse'
-                                                                    : 'bg-gray-100 text-gray-800'
+                                                                ? 'bg-yellow-100 text-yellow-800 animate-pulse'
+                                                                : 'bg-gray-100 text-gray-800'
                                                                 }`}>
                                                                 F: {playerInGame.fouls}/5
                                                             </div>
@@ -1901,8 +1901,8 @@
                                                     key={player.id}
                                                     onClick={function () { !isFouledOut && setSelectedSubstitute(player); }}
                                                     className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedSubstitute && selectedSubstitute.id === player.id
-                                                            ? 'border-blue-500 bg-blue-50'
-                                                            : 'border-gray-200 hover:border-gray-300'
+                                                        ? 'border-blue-500 bg-blue-50'
+                                                        : 'border-gray-200 hover:border-gray-300'
                                                         } ${isFouledOut ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     <div className="flex items-center justify-between">
@@ -2489,8 +2489,12 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(registration => console.log('SW registered'))
-                    .catch(registrationError => console.log('SW registration failed'));
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
             });
         }
     </script>
