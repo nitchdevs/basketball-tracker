@@ -32,26 +32,6 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "type": "image/png",
-      "sizes": "375x667",
-      "description": "Home screen with team management options"
-    },
-    {
-      "src": "screenshot2.png",
-      "type": "image/png",
-      "sizes": "375x667",
-      "description": "Game tracking screen with player stats"
-    },
-    {
-      "src": "screenshot3.png",
-      "type": "image/png",
-      "sizes": "375x667",
-      "description": "Player timeline and statistics"
-    }
-  ],
   "categories": [
     "sports",
     "productivity",
