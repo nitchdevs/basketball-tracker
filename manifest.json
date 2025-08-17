@@ -7,7 +7,7 @@
   "id": "basketball-tracker",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "dir": "ltr",
   "lang": "en",
   "background_color": "#ffffff",
@@ -109,12 +109,18 @@
       ]
     }
   ],
+  "prefer_related_applications": false,
+  "related_applications": [],
   "protocol_handlers": [
     {
       "protocol": "web+basketball",
       "url": "./import?data=%s"
     }
   ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "edge_side_panel": {
     "preferred_width": 400
   }
