@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendrier Basket Adrien</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 14px;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 15px;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        .date {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .time {
+            font-family: 'Courier New', monospace;
+            color: #7f8c8d;
+        }
+        .home-team, .away-team {
+            font-weight: 500;
+        }
+        .score {
+            text-align: center;
+            font-weight: 700;
+            color: #4CAF50;
+            font-size: 16px;
+        }
+        .no-score {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            table {
+                font-size: 14px;
+            }
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Match 2025-2026</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Série</th>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Home</th>
+                    <th>Score Home</th>
+                    <th>Score Away</th>
+                    <th>Away</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">06/09/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score">78</td>
+                    <td class="score">70</td>
+                    <td class="away-team">R2H Lg. Atlas Ath. Jupille A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">13/09/2025</td>
+                    <td class="time">21:00</td>
+                    <td class="home-team">R2H JSB Maffle A</td>
+                    <td class="score">66</td>
+                    <td class="score">71</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">14/09/2025</td>
+                    <td class="time">13:00</td>
+                    <td class="home-team">RU21H BC Ransart Charleroi</td>
+                    <td class="score">76</td>
+                    <td class="score">80</td>
+                    <td class="away-team">RU21H Royal Nivelles Basketball A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">20/09/2025</td>
+                    <td class="time">19:00</td>
+                    <td class="home-team">R2H BC Fraire-Philippeville A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">21/09/2025</td>
+                    <td class="time">15:00</td>
+                    <td class="home-team">RU21H Cristal Basket Seraing A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H Royal Nivelles Basketball A</td>
+                </tr>
+                <tr>
+                    <td>Coupe R2H</td>
+                    <td class="date">27/09/2025</td>
+                    <td class="time">20:15</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">Royal BC Saint-Hubert A</td>
+                </tr>
+                <tr>
+                    <td>Coupe U21</td>
+                    <td class="date">28/09/2025</td>
+                    <td class="time">11:00</td>
+                    <td class="home-team">RU21H Royal Nivelles Basketball</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H Royal Canter Schaerbeek</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">04/10/2025</td>
+                    <td class="time">09:30</td>
+                    <td class="home-team">RU21H Royal Nivelles Basketball A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H JSE Enghien</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">04/10/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H BC JS Estaimpuis A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">11/10/2025</td>
+                    <td class="time">20:30</td>
+                    <td class="home-team">R2H Royal Linthout BC W.S.</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">18/10/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Canter Schaerbeek A</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">08/11/2025</td>
+                    <td class="time">11:00</td>
+                    <td class="home-team">RU21H JSE Enghien</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H Royal Nivelles Basketball A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">15/11/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal BC Alleur A</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">22/11/2025</td>
+                    <td class="time">13:00</td>
+                    <td class="home-team">RU21H Royal Nivelles Basketball A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H BC Ransart Charleroi</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">23/11/2025</td>
+                    <td class="time">17:00</td>
+                    <td class="home-team">R2H RBC Wanze A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">29/11/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H B55 Academy XL A</td>
+                </tr>
+                <tr>
+                    <td>U21HSB</td>
+                    <td class="date">07/12/2025</td>
+                    <td class="time">15:00</td>
+                    <td class="home-team">RU21H Royal Nivelles Basketball A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">RU21H Cristal Basket Seraing A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">13/12/2025</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Amicale Basket Club Waremme A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">20/12/2025</td>
+                    <td class="time">20:00</td>
+                    <td class="home-team">R2H AS Mazy-Spy A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">10/01/2026</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H JSB Maffle A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">17/01/2026</td>
+                    <td class="time">20:00</td>
+                    <td class="home-team">R2H Lg. Atlas Ath. Jupille A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">24/01/2026</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H BC Fraire-Philippeville A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">31/01/2026</td>
+                    <td class="time">20:30</td>
+                    <td class="home-team">R2H BC JS Estaimpuis A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">07/02/2026</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Linthout BC W.S.</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">15/02/2026</td>
+                    <td class="time">15:00</td>
+                    <td class="home-team">R2H Royal Canter Schaerbeek A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">28/02/2026</td>
+                    <td class="time">20:30</td>
+                    <td class="home-team">R2H Royal BC Alleur A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">14/03/2026</td>
+                    <td class="time">20:30</td>
+                    <td class="home-team">R2H B55 Academy XL A</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H Royal Nivelles Basketball B</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">18/04/2026</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H AS Mazy-Spy A</td>
+                </tr>
+                <tr>
+                    <td>R2H A</td>
+                    <td class="date">25/04/2026</td>
+                    <td class="time">18:00</td>
+                    <td class="home-team">R2H Royal Nivelles Basketball B</td>
+                    <td class="score no-score">-</td>
+                    <td class="score no-score">-</td>
+                    <td class="away-team">R2H RBC Wanze A</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
